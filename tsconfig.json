@@ -2,6 +2,19 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
-  "references": [],
+  "references": [
+    {
+      "path": "./apps/marginalia-api-e2e"
+    },
+    {
+      "path": "./apps/marginalia-api"
+    },
+    {
+      "path": "./apps/marginalia-mobile"
+    },
+    {
+      "path": "./apps/marginalia-web"
+    }
+  ],
   "compilerOptions": {}
 }
