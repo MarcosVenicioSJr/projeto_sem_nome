@@ -6,10 +6,16 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { AccountStatus, Genre } from '@org/contracts';
-import { accountStatusSchema } from '@org/contracts';
+import { ACCOUNT_STATUS, type AccountStatus } from '../enums';
 
-/** `users` table (Security spec §8). */
+/**
+ * Entities are self-contained: they do NOT import `@org/contracts`, so the
+ * Atlas TypeORM provider can load them standalone. Enum values live in
+ * `database/enums/`; drift against `accountStatusSchema` in @org/contracts is
+ * caught at compile time in `user.mapper.ts`.
+ *
+ * `users` table (Security spec §8).
+ */
 @Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -34,7 +40,7 @@ export class UserEntity {
 
   @Column({
     type: 'enum',
-    enum: accountStatusSchema.options,
+    enum: ACCOUNT_STATUS,
     default: 'pending_verification',
   })
   status!: AccountStatus;
@@ -42,8 +48,9 @@ export class UserEntity {
   @Column({ name: 'email_verified_at', type: 'timestamptz', nullable: true })
   emailVerifiedAt!: Date | null;
 
+  /** Genre slugs. The allowed values are enforced by the API contract, not the DB. */
   @Column({ name: 'favorite_genres', type: 'simple-array', default: '' })
-  favoriteGenres!: Genre[];
+  favoriteGenres!: string[];
 
   @Column({ name: 'failed_login_attempts', type: 'int', default: 0 })
   failedLoginAttempts!: number;

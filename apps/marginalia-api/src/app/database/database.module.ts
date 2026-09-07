@@ -41,7 +41,9 @@ const REPOSITORIES = [
         password: config.get('DB_PASSWORD', { infer: true }),
         database: config.get('DB_NAME', { infer: true }),
         entities: ENTITIES,
-        synchronize: config.get('DB_SYNCHRONIZE', { infer: true }),
+        // Schema is managed by Atlas (see atlas.hcl / docs/arch/migrations.md).
+        // TypeORM never touches the schema.
+        synchronize: false,
         logging: config.get('DB_LOGGING', { infer: true }),
       }),
     }),

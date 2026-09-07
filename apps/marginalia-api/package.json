@@ -62,6 +62,41 @@
         "options": {
           "passWithNoTests": true
         }
+      },
+      "migrate-diff": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/marginalia-api",
+          "command": "dotenv -e ../../.env -- atlas migrate diff --env local"
+        }
+      },
+      "migrate-apply": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/marginalia-api",
+          "command": "dotenv -e ../../.env -- atlas migrate apply --env local"
+        }
+      },
+      "migrate-lint": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/marginalia-api",
+          "command": "dotenv -e ../../.env -- atlas migrate lint --env local --latest 1"
+        }
+      },
+      "migrate-hash": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/marginalia-api",
+          "command": "dotenv -e ../../.env -- atlas migrate hash --env local"
+        }
+      },
+      "migrate-status": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/marginalia-api",
+          "command": "dotenv -e ../../.env -- atlas migrate status --env local"
+        }
       }
     }
   },
@@ -85,7 +120,9 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@ariga/atlas-provider-typeorm": "^0.3.2",
     "@nestjs/testing": "^11.0.0",
-    "@types/nodemailer": "^6.4.17"
+    "@types/nodemailer": "^6.4.17",
+    "dotenv-cli": "^8.0.0"
   }
 }

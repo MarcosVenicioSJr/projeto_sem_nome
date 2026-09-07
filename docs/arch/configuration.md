@@ -30,7 +30,6 @@
 | `DB_USER` | `marginalia` | database user |
 | `DB_PASSWORD` | `marginalia` | database password |
 | `DB_NAME` | `marginalia` | database name |
-| `DB_SYNCHRONIZE` | `true` | TypeORM syncs the schema. **`false` in production** |
 | `DB_LOGGING` | `false` | log SQL |
 | `MAIL_HOST` | `localhost` | SMTP host (local: Mailpit; prod: e.g. `in-v3.mailjet.com`) |
 | `MAIL_PORT` | `1025` | SMTP port (Mailjet: `587`) |
@@ -39,7 +38,8 @@
 | `MAIL_PASSWORD` | `` | SMTP password/secret |
 | `MAIL_FROM` | `Marginália <no-reply@marginalia.local>` | sender |
 
-Boolean vars accept exactly `"true"` / `"false"`.
+Boolean vars accept exactly `"true"` / `"false"`. The DB schema is managed by
+Atlas ([migrations.md](./migrations.md)) — there is no `DB_SYNCHRONIZE`.
 
 ## Adding a variable
 

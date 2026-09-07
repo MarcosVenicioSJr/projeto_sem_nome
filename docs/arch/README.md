@@ -9,7 +9,8 @@ Living documentation of the technical decisions. Complements the product specs i
 |---|---|
 | [decisions.md](./decisions.md) | Architecture decision log (ADR) — **start here** |
 | [shared-packages.md](./shared-packages.md) | Consuming `@org/contracts` / `@org/utils` / `@org/i18n` from api/web/mobile |
-| [persistence.md](./persistence.md) | TypeORM + repository pattern, entities, migrations |
+| [persistence.md](./persistence.md) | TypeORM + repository pattern, entities |
+| [migrations.md](./migrations.md) | Schema migrations with Atlas |
 | [configuration.md](./configuration.md) | Environment variables (`@nestjs/config` + Zod validation) |
 | [local-development.md](./local-development.md) | Bring up DB + app locally (docker-compose) |
 

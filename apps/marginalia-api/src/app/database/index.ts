@@ -1,4 +1,5 @@
 export * from './database.module';
+export * from './enums';
 export * from './entities/user.entity';
 export * from './entities/verification-code.entity';
 export * from './entities/refresh-token.entity';

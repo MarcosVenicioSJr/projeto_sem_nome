@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import {
-  VerificationCodeEntity,
-  VerificationPurpose,
-} from '../entities/verification-code.entity';
+import { VerificationCodeEntity } from '../entities/verification-code.entity';
+import type { VerificationPurpose } from '../enums';
 
 @Injectable()
 export class VerificationCodesRepository {

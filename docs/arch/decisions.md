@@ -120,9 +120,8 @@ Entities and repositories are centralized in
 connection (`forRootAsync` reading `ConfigService`) and exports the repositories;
 `AuthModule` and `UserModule` just import it.
 
-Dev uses `DB_SYNCHRONIZE=true` (TypeORM creates/alters tables). **Migrations** are
-deferred until the schema stabilizes — `data-source.ts` is ready. Details in
-[persistence.md](./persistence.md).
+Schema migrations are managed by **Atlas**, not TypeORM (ADR-015). `synchronize`
+is always `false`. Details in [migrations.md](./migrations.md).
 
 **Consequences.** Swapping the ORM later touches only the `database/` folder.
 Services are testable with a repository mock (no DB). `synchronize` is **never**
@@ -273,6 +272,46 @@ Type-checking always uses source (all apps extend `tsconfig.base.json` with
 [shared-packages.md](./shared-packages.md), which is the file a new dev reads
 before wiring a shared package into an app. Consuming the schemas is otherwise
 identical to the API: import the schema, no `createZodDto`, no `class-validator`.
+
+---
+
+## ADR-015 — Atlas for schema migrations
+
+**Context.** ADR-006 deferred migrations behind TypeORM's own CLI. TypeORM's
+`migration:generate` produces unreliable diffs on Postgres exactly where we use
+it (native `enum` for `status`/`purpose`, `simple-array`, column defaults),
+has no safety linting and no migration integrity checks.
+
+**Decision.** Adopt **[Atlas](https://atlasgo.io)** for schema migrations.
+TypeORM stays as the runtime ORM (repositories, mapping, queries) — Atlas only
+owns the schema lifecycle.
+
+- Desired schema = the TypeORM entities, loaded by the official
+  `@ariga/atlas-provider-typeorm` (validated: it emits correct Postgres DDL for
+  all four entities).
+- Versioned migrations: `src/app/database/migrations/*.sql` + `atlas.sum`
+  (integrity checksum), committed to git.
+- `synchronize` is hardcoded `false`; the `DB_SYNCHRONIZE` env var is removed.
+- `data-source.ts` (the deferred TypeORM CLI entry point) is deleted.
+- Config in `apps/marginalia-api/atlas.hcl`; commands wrapped as Nx targets
+  (`migrate-diff`, `migrate-apply`, `migrate-lint`, `migrate-hash`,
+  `migrate-status`) that load the root `.env` via `dotenv-cli`.
+- Atlas needs Docker (ephemeral dev database to plan the diff) — already required.
+- Apply runs as a **deploy step**, not from the app (Atlas has no Node runtime).
+
+**Entities stop importing `@org/contracts`** so the provider can load them
+standalone. Enum values are local `as const` tuples in `database/enums/`;
+`user.mapper.ts` still assigns `entity.status` to `User['status']`, so a drift
+between the entity enum and `accountStatusSchema` fails to compile.
+
+Open (not blocking): versioned (chosen) vs declarative; where exactly `apply`
+runs on deploy; `docker://` ephemeral dev DB vs a fixed compose service; Atlas
+Cloud (not now).
+
+**Consequences.** New toolchain item: the `atlas` Go binary (install step on dev
+machines + CI). Everything else is npm. Workflow mirrors
+`typeorm migration:generate` but the diff is trustworthy and lint-gated. Full
+guide in [migrations.md](./migrations.md).
 
 ---
 

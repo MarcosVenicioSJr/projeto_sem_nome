@@ -8,6 +8,9 @@
 ```
 apps/marginalia-api/src/app/database/
   database.module.ts        forRootAsync (connection) + forFeature + providers/exports
+  enums/
+    account-status.enum.ts        ACCOUNT_STATUS / AccountStatus
+    verification-purpose.enum.ts   VERIFICATION_PURPOSE / VerificationPurpose
   entities/
     user.entity.ts               users table
     verification-code.entity.ts  verification_codes table
@@ -18,8 +21,9 @@ apps/marginalia-api/src/app/database/
     verification-codes.repository.ts
     refresh-tokens.repository.ts
     terms-acceptances.repository.ts
-  migrations/               (empty for now — see "Migrations")
-apps/marginalia-api/data-source.ts   DataSource for the migrations CLI only
+  migrations/               Atlas *.sql + atlas.sum (see migrations.md)
+apps/marginalia-api/atlas.hcl       Atlas config
+apps/marginalia-api/atlas-load.mjs  provider wrapper (uuid rewrite)
 ```
 
 Tables follow Security spec §8 (with the ADR-009/010 adjustments).
@@ -50,8 +54,8 @@ if (await this.users.existsByUsername(input.username)) {
 }
 ```
 
-**Why:** swapping/upgrading the ORM touches only `database/`; services are
-testable with a repository mock (see `auth.service.spec.ts`); queries get names.
+**Why:** upgrading the ORM touches only `database/`; services are testable with a
+repository mock (see `auth.service.spec.ts`); queries get names.
 
 ## Wiring
 
@@ -71,31 +75,22 @@ TypeOrmModule.forFeature(ENTITIES),
 `AuthModule` and `UserModule` just do `imports: [DatabaseModule]` and inject the
 repositories. No circular dependency (`DatabaseModule` knows nobody).
 
-## `synchronize` vs migrations
+## Schema changes = migrations (Atlas)
 
-- **Dev:** `DB_SYNCHRONIZE=true` — TypeORM creates/alters the tables from the
-  entities on every boot. Fast to iterate while the schema changes.
-- **Production / once stable:** `DB_SYNCHRONIZE=false` + versioned migrations.
-  `data-source.ts` is already configured:
-
-```bash
-# with Postgres up (docker compose up -d), from the repo root:
-npx typeorm-ts-node-commonjs migration:generate \
-  apps/marginalia-api/src/app/database/migrations/Init \
-  -d apps/marginalia-api/data-source.ts
-
-npx typeorm-ts-node-commonjs migration:run    -d apps/marginalia-api/data-source.ts
-npx typeorm-ts-node-commonjs migration:revert -d apps/marginalia-api/data-source.ts
-```
-
-Then register `migrations` + `migrationsRun` in `DatabaseModule`.
+`synchronize` is **always `false`**. The schema is managed by **Atlas**
+([ADR-015](./decisions.md#adr-015--atlas-for-schema-migrations)): edit an entity,
+then `nx run marginalia-api:migrate-diff -- <name>` to generate a `.sql`
+migration, `migrate-apply` to run it. Full workflow in
+[migrations.md](./migrations.md).
 
 ## Entity conventions
 
 - Column names in `snake_case` (`@Column({ name: 'password_hash' })`), class in
   `camelCase`.
 - Timestamps `timestamptz`; `@CreateDateColumn` / `@UpdateDateColumn`.
-- Domain enums come from `@org/contracts` (`accountStatusSchema.options`) to avoid
-  duplicating the list.
 - `id` is always `uuid` (`@PrimaryGeneratedColumn('uuid')`).
 - Secrets (password, OTP code, refresh token) never in plain text — hash only.
+- **Entities do not import `@org/contracts`** — the Atlas provider loads them
+  standalone. Enum values are local `as const` tuples in `database/enums/`; drift
+  against the contract's Zod enum is caught at compile time in `*.mapper.ts`
+  (the mapper assigns `entity.status` to the contract's `User['status']`).

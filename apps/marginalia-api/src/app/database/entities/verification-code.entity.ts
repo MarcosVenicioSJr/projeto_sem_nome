@@ -5,8 +5,7 @@ import {
   Index,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-
-export type VerificationPurpose = 'registration' | 'password_reset';
+import { VERIFICATION_PURPOSE, type VerificationPurpose } from '../enums';
 
 /** `verification_codes` table (Security spec §3 and §8). Stores only the HASH. */
 @Entity({ name: 'verification_codes' })
@@ -21,7 +20,7 @@ export class VerificationCodeEntity {
   @Column({ name: 'code_hash' })
   codeHash!: string;
 
-  @Column({ type: 'enum', enum: ['registration', 'password_reset'] })
+  @Column({ type: 'enum', enum: VERIFICATION_PURPOSE })
   purpose!: VerificationPurpose;
 
   @Column({ name: 'expires_at', type: 'timestamptz' })

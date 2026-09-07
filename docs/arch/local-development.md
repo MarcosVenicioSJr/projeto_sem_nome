@@ -4,23 +4,24 @@
 
 - Node (version from `.nvmrc`/`package.json`), the repo's package manager (here: **npm**).
 - Docker + Docker Compose.
+- The `atlas` CLI (`winget install ariga.atlas` on Windows) — for migrations.
 
 ## First time
 
 ```bash
 npm install
 cp .env.example .env          # adjust JWT_SECRET if you want
-docker compose up -d          # brings up Postgres + Adminer + Mailpit
+docker compose up -d          # Postgres + Mailpit
+npx nx run marginalia-api:migrate-apply   # create the schema (Atlas)
 ```
 
 - Postgres: `localhost:5432` (user/pass/db = `marginalia`).
-- Adminer (web, to browse tables): http://localhost:8080 — system *PostgreSQL*,
-  server `db`, user/password `marginalia`.
 - **Mailpit** (email catcher): SMTP on `localhost:1025`, UI on
   http://localhost:8025 — every email the API sends lands here (the signup
   verification code shows up in that inbox).
 
-With `DB_SYNCHRONIZE=true`, TypeORM creates the tables on the API's first boot.
+Schema changes later: `migrate-diff -- <name>` then `migrate-apply` — see
+[migrations.md](./migrations.md).
 
 ## Run the API
 
@@ -59,4 +60,4 @@ npx nx sync                    # sync tsconfig references
 - `nx test` for the pure packages (`contracts`, `utils`, `i18n`) is broken (a
   vitest 4 bug — see [decisions.md](./decisions.md#known-gaps)); run
   `cd packages/<name> && npx vitest run`.
-- Migrations: see [persistence.md](./persistence.md#synchronize-vs-migrations).
+- Migrations (Atlas): see [migrations.md](./migrations.md).

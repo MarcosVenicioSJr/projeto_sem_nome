@@ -30,8 +30,6 @@ export const envSchema = z.object({
   DB_USER: z.string().default('marginalia'),
   DB_PASSWORD: z.string().default('marginalia'),
   DB_NAME: z.string().default('marginalia'),
-  /** Dev: `true` lets TypeORM create/alter tables by itself. NEVER in production. */
-  DB_SYNCHRONIZE: boolFromEnv(true),
   DB_LOGGING: boolFromEnv(false),
 
   // Email (SMTP). Local: Mailpit (docker-compose). Prod: a real SMTP (e.g. Mailjet).
