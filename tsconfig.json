@@ -14,6 +14,15 @@
     },
     {
       "path": "./apps/marginalia-web"
+    },
+    {
+      "path": "./packages/contracts"
+    },
+    {
+      "path": "./packages/utils"
+    },
+    {
+      "path": "./packages/i18n"
     }
   ],
   "compilerOptions": {}
