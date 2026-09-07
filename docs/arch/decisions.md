@@ -317,10 +317,15 @@ guide in [migrations.md](./migrations.md).
 
 ## Known gaps
 
-- **`nx test contracts` / `nx test i18n` / `nx test utils`** fail
-  (`Vitest failed to find the current suite`) — a vitest 4 bug with the root
-  `vitest.config.mts` that uses `test.projects`. `npx vitest run` inside each
-  package works. Does not block build/typecheck.
+- **`nx test` for the pure packages (`contracts`, `i18n`, `utils`) fails on
+  Windows** (`Cannot read properties of undefined (reading 'config')`) — the
+  `nx:run-commands` spawn (`cmd.exe`) + vitest 4's fork pool lose the runner
+  context. Every direct invocation works: `cd packages/<name> && npx vitest run`
+  (13 / 10 / 2 tests). CI is Linux (`sh -c`), where this does not reproduce.
+  On Windows, run vitest directly.
+- **e2e (`marginalia-api-e2e`)** is the stale generator scaffold — asserts a
+  `GET /api` endpoint that no longer exists and boots the API without a DB. Needs
+  a rewrite; will then need a Postgres service + `migrate-apply` in its CI job.
 - **Email**: channel ready (ADR-011). Only the **real 2-minute cooldown** on
   `resendCode` is missing (it currently re-issues without checking the interval).
 - **Refresh/logout/password reset**: repositories ready, routes not yet.

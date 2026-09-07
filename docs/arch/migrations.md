@@ -63,11 +63,18 @@ The first run generates the initial migration from the current entities.
 
 ## CI / deploy
 
-- **PR check:** `nx run marginalia-api:migrate-lint` — fails on destructive ops,
-  table locks, `NOT NULL` without default, etc.
-- **Deploy:** run `nx run marginalia-api:migrate-apply` (pointed at the target
-  DB via `DB_*` env) **before** starting the API. Atlas has no Node runtime
-  library, so the app does not self-migrate.
+The `migrations` job in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+(runs on the main `ubuntu-latest` runner — it has Docker for the ephemeral dev DB):
+
+- `ariga/setup-atlas@v0` installs the CLI.
+- `migrate-lint` — fails on destructive ops, table locks, `NOT NULL` without
+  default, `atlas.sum` mismatch.
+- **drift check** — runs `migrate-diff` and fails if it produced a new `.sql`
+  (i.e. an entity changed without a matching migration).
+
+**Deploy:** run `nx run marginalia-api:migrate-apply` (pointed at the target DB
+via `DB_*` env) **before** starting the API. Atlas has no Node runtime library,
+so the app does not self-migrate.
 
 ## Gotchas
 
