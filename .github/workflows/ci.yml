@@ -22,7 +22,7 @@ jobs:
       # This enables task distribution via Nx Cloud
       # Run this command as early as possible, before dependencies are installed
       # Learn more at https://nx.dev/docs/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e"
+      - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="typecheck"
 
       # Cache node_modules
       - uses: actions/setup-node@v5
@@ -32,20 +32,16 @@ jobs:
 
       - run: npm ci
 
-      # .env for tools that read it (Atlas migration checks). Values are the
-      # docker-compose defaults; nothing secret.
-      - run: cp .env.example .env
-
       # Prepend any command with "nx record --" to record its logs to Nx Cloud
       - run: npx nx record -- npx nx format:check --base="remotes/origin/main"
-      - run: npx nx run-many -t lint test build typecheck e2e
+      - run: npx nx run-many -t lint test build typecheck
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/docs/features/ci-features/self-healing-ci
       - run: npx nx fix-ci
         if: always()
 
-  # Atlas migrations: entities load + committed migrations are safe & in sync.
-  # Runs on the main runner (has Docker for Atlas's ephemeral dev database).
-  migrations:
+  # DB + running-API checks. Its own job on ubuntu-latest, which has Docker
+  # (Atlas's dev database and the docker-compose stack). Not distributed.
+  integration:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -58,15 +54,15 @@ jobs:
           cache: 'npm'
       - run: npm ci
 
+      # .env for tools that read it (Atlas, docker-compose). docker-compose
+      # defaults; nothing secret.
       - run: cp .env.example .env
 
       - uses: ariga/setup-atlas@v0
 
-      # Fails on destructive / unsafe migrations (drops, table locks,
-      # NOT NULL without default, checksum mismatch in atlas.sum).
+      # Migrations: safe (no destructive ops / locks / checksum drift) and in
+      # sync with the entities.
       - run: npx nx run marginalia-api:migrate-lint
-
-      # Fails if an entity changed but no migration was generated for it.
       - run: |
           npx nx run marginalia-api:migrate-diff -- ci_drift_check
           if [ -n "$(git status --porcelain apps/marginalia-api/src/app/database/migrations)" ]; then
@@ -74,3 +70,10 @@ jobs:
             git --no-pager diff apps/marginalia-api/src/app/database/migrations
             exit 1
           fi
+
+      # e2e: bring up the stack, apply the schema, run the suite against a real
+      # API process (global-setup spawns it; E2E_SKIP_INFRA lets the job own infra).
+      - run: docker compose up -d --wait db mail
+      - run: npx nx run marginalia-api:migrate-apply
+      - run: npx nx run marginalia-api:build
+      - run: E2E_SKIP_INFRA=true npx nx e2e marginalia-api-e2e

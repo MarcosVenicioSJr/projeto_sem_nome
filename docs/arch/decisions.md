@@ -315,6 +315,35 @@ guide in [migrations.md](./migrations.md).
 
 ---
 
+## ADR-016 — e2e: black-box, self-bootstrapping infra
+
+**Context.** `marginalia-api-e2e` was the generator scaffold (asserted a removed
+`GET /api`, and couldn't boot the API without a DB). The API now needs Postgres +
+a migrated schema + an SMTP sink to run.
+
+**Decision.** Keep e2e **black-box** — it hits the real HTTP server, no in-process
+`AppModule` import. jest `globalSetup` owns the lifecycle:
+
+1. `docker compose up -d --wait db mail` + `nx run marginalia-api:migrate-apply`
+   (both idempotent; skipped when `E2E_SKIP_INFRA=true`, e.g. in CI where the job
+   owns infra).
+2. `killPort` then `spawn('node', ['apps/marginalia-api/dist/main.js'])` — the API
+   is started here (not `nx serve`) so ordering is deterministic.
+3. `waitForPortOpen`; `globalTeardown` kills it (+ `docker compose stop` in CI).
+
+The verification code is read from **Mailpit's REST API** (`/api/v1/search`) — the
+code is never exposed by the API itself.
+
+The `e2e` target `dependsOn` is just `@org/marginalia-api:build` (needs `dist/`).
+Coverage: full signup -> login -> `/user/me` happy path, `username-available`,
+localized 422 (`Accept-Language`), generic 401s.
+
+**CI.** Runs in a dedicated non-distributed `integration` job on `ubuntu-latest`
+(has Docker), alongside `migrate-lint` + the drift check. `jest.config.cts` was
+also fixed here — it was ESM syntax in a `.cts` file and never loaded.
+
+---
+
 ## Known gaps
 
 - **`nx test` for the pure packages (`contracts`, `i18n`, `utils`) fails on
@@ -323,9 +352,9 @@ guide in [migrations.md](./migrations.md).
   context. Every direct invocation works: `cd packages/<name> && npx vitest run`
   (13 / 10 / 2 tests). CI is Linux (`sh -c`), where this does not reproduce.
   On Windows, run vitest directly.
-- **e2e (`marginalia-api-e2e`)** is the stale generator scaffold — asserts a
-  `GET /api` endpoint that no longer exists and boots the API without a DB. Needs
-  a rewrite; will then need a Postgres service + `migrate-apply` in its CI job.
+- **Data isolation in e2e**: tests use unique usernames/emails per run, but the
+  DB is not reset between runs — rows accumulate. Fine for now; add a truncate
+  (or a per-run schema) if assertions start depending on row counts.
 - **Email**: channel ready (ADR-011). Only the **real 2-minute cooldown** on
   `resendCode` is missing (it currently re-issues without checking the interval).
 - **Refresh/logout/password reset**: repositories ready, routes not yet.

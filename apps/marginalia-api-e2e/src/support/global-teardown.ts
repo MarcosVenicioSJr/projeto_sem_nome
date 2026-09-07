@@ -1,10 +1,23 @@
+import { execSync } from 'node:child_process';
 import { killPort } from '@nx/node/utils';
-/* eslint-disable */
 
-module.exports = async function () {
-  // Put clean up logic here (e.g. stopping services, docker-compose, etc.).
-  // Hint: `globalThis` is shared between setup and teardown.
+module.exports = async function globalTeardown() {
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+
+  const pid = globalThis.__API_PID__;
+  if (typeof pid === 'number') {
+    try {
+      process.kill(pid);
+    } catch {
+      /* already gone */
+    }
+  }
   await killPort(port);
-  console.log(globalThis.__TEARDOWN_MESSAGE__);
+
+  // In CI, drop the stack. Locally, leave it up for the next run.
+  if (process.env.CI && process.env.E2E_SKIP_INFRA !== 'true') {
+    execSync('docker compose stop', { stdio: 'inherit' });
+  }
+
+  console.log('\n[e2e] torn down.\n');
 };

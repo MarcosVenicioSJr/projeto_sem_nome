@@ -63,8 +63,9 @@ The first run generates the initial migration from the current entities.
 
 ## CI / deploy
 
-The `migrations` job in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
-(runs on the main `ubuntu-latest` runner — it has Docker for the ephemeral dev DB):
+The `integration` job in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+(a non-distributed `ubuntu-latest` job — it has Docker for the ephemeral dev DB
+and the compose stack; also runs the e2e suite):
 
 - `ariga/setup-atlas@v0` installs the CLI.
 - `migrate-lint` — fails on destructive ops, table locks, `NOT NULL` without

@@ -44,6 +44,17 @@ GET  /api/user/me               Authorization: Bearer <accessToken>
 
 Send `Accept-Language: pt-BR` (or `en`) to pick the response language.
 
+## e2e
+
+```bash
+npx nx e2e marginalia-api-e2e
+```
+
+Self-bootstrapping: `globalSetup` brings up docker-compose, applies migrations,
+starts the built API, and reads the verification code from Mailpit. Set
+`E2E_SKIP_INFRA=true` if you already have the stack + schema up. See
+[ADR-016](./decisions.md#adr-016--e2e-black-box-self-bootstrapping-infra).
+
 ## Useful commands
 
 ```bash
