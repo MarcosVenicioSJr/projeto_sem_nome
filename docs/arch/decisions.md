@@ -10,7 +10,7 @@ Consequences. Last updated: 2026-09-07.
 **Context.** One repo with the API (NestJS), web (Next.js) and mobile (React
 Native), needing to share code with type safety.
 
-**Decision.** Nx 23 in *TS solution* mode (npm workspaces + project references).
+**Decision.** Nx 23 in _TS solution_ mode (npm workspaces + project references).
 Each project has its own `package.json` (`@org/<name>`); cross-project imports
 resolve by package name, via the workspace symlink + the `@org/source` export
 condition (dev consumes the `.ts` source; build consumes `dist/`). `npx nx sync`
@@ -203,11 +203,12 @@ Message composition uses `@org/i18n` keys inside `MailerService`
 (it's string→string), and the folder grouped by file type, not by domain.
 
 **Decision.** Two packages with distinct responsibilities (Nx `type:util` pattern
-+ create-t3-turbo, which separates `packages/validators` from utilities):
 
-- **`@org/contracts`** — Zod schemas + inferred types only, grouped by domain
+- create-t3-turbo, which separates `packages/validators` from utilities):
+
+* **`@org/contracts`** — Zod schemas + inferred types only, grouped by domain
   (`common/`, `auth/`, `user/`).
-- **`@org/utils`** — pure TS functions, **no framework, no Zod**, grouped by
+* **`@org/utils`** — pure TS functions, **no framework, no Zod**, grouped by
   subject (`email/`, …). First resident: `maskEmail`. It will grow (date
   formatting, the club's `R$ 20.00` fee, etc.).
 
@@ -294,8 +295,9 @@ owns the schema lifecycle.
 - `synchronize` is hardcoded `false`; the `DB_SYNCHRONIZE` env var is removed.
 - `data-source.ts` (the deferred TypeORM CLI entry point) is deleted.
 - Config in `apps/marginalia-api/atlas.hcl`; commands wrapped as Nx targets
-  (`migrate-diff`, `migrate-apply`, `migrate-lint`, `migrate-hash`,
-  `migrate-status`) that load the root `.env` via `dotenv-cli`.
+  (`migrate-diff`, `migrate-apply`, `migrate-status`) that load the root `.env`
+  via `dotenv-cli`. All Community Edition — no Atlas Pro. (`atlas migrate hash`,
+  for a broken `atlas.sum`, is run raw — no target.)
 - Atlas needs Docker (ephemeral dev database to plan the diff) — already required.
 - Apply runs as a **deploy step**, not from the app (Atlas has no Node runtime).
 
@@ -310,8 +312,10 @@ Cloud (not now).
 
 **Consequences.** New toolchain item: the `atlas` Go binary (install step on dev
 machines + CI). Everything else is npm. Workflow mirrors
-`typeorm migration:generate` but the diff is trustworthy and lint-gated. Full
-guide in [migrations.md](./migrations.md).
+`typeorm migration:generate` but the diff is trustworthy. CI has a drift check
+(`migrate diff` must be empty); the generated `.sql` is reviewed in the PR
+(`migrate lint` moved to Atlas Pro in v0.38 — not used). Full guide in
+[migrations.md](./migrations.md).
 
 ---
 
@@ -339,8 +343,8 @@ Coverage: full signup -> login -> `/user/me` happy path, `username-available`,
 localized 422 (`Accept-Language`), generic 401s.
 
 **CI.** Runs in a dedicated non-distributed `integration` job on `ubuntu-latest`
-(has Docker), alongside `migrate-lint` + the drift check. `jest.config.cts` was
-also fixed here — it was ESM syntax in a `.cts` file and never loaded.
+(has Docker), alongside the migration drift check. `jest.config.cts` was also
+fixed here — it was ESM syntax in a `.cts` file and never loaded.
 
 ---
 

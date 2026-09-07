@@ -77,20 +77,6 @@
           "command": "dotenv -e ../../.env -- atlas migrate apply --env local"
         }
       },
-      "migrate-lint": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "apps/marginalia-api",
-          "command": "dotenv -e ../../.env -- atlas migrate lint --env local --latest 1"
-        }
-      },
-      "migrate-hash": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "apps/marginalia-api",
-          "command": "dotenv -e ../../.env -- atlas migrate hash --env local"
-        }
-      },
       "migrate-status": {
         "executor": "nx:run-commands",
         "options": {

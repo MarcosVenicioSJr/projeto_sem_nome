@@ -55,9 +55,20 @@ npx nx run marginalia-api:migrate-apply
 
 # other
 npx nx run marginalia-api:migrate-status     # what's pending
-npx nx run marginalia-api:migrate-lint       # safety analysis of the latest migration
-npx nx run marginalia-api:migrate-hash       # recompute atlas.sum after a manual edit
 ```
+
+If `atlas.sum` ever goes out of sync (a merge, a hand-edit you actually meant),
+recompute it once with the raw CLI — it's not a routine step, so there's no Nx
+target for it:
+
+```bash
+cd apps/marginalia-api && atlas migrate hash --env local
+```
+
+`atlas migrate lint` (destructive-op / lock analysis) moved to Atlas Pro in
+v0.38, so there is **no `migrate-lint` target** — the safety gate is reviewing
+the generated `.sql` in the PR. Everything used here (`diff`, `apply`, `status`,
+`hash`) is Community Edition.
 
 The first run generates the initial migration from the current entities.
 
@@ -68,10 +79,8 @@ The `integration` job in [`.github/workflows/ci.yml`](../../.github/workflows/ci
 and the compose stack; also runs the e2e suite):
 
 - `ariga/setup-atlas@v0` installs the CLI.
-- `migrate-lint` — fails on destructive ops, table locks, `NOT NULL` without
-  default, `atlas.sum` mismatch.
 - **drift check** — runs `migrate-diff` and fails if it produced a new `.sql`
-  (i.e. an entity changed without a matching migration).
+  (i.e. an entity changed without a matching migration). Community Edition.
 
 **Deploy:** run `nx run marginalia-api:migrate-apply` (pointed at the target DB
 via `DB_*` env) **before** starting the API. Atlas has no Node runtime library,

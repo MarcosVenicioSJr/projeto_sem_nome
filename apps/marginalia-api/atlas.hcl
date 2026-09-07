@@ -5,7 +5,7 @@
 // Run from apps/marginalia-api/, with the root .env loaded, e.g.:
 //   npx nx run marginalia-api:migrate-diff -- <name>
 //   npx nx run marginalia-api:migrate-apply
-//   npx nx run marginalia-api:migrate-lint
+//   npx nx run marginalia-api:migrate-status
 
 data "external_schema" "typeorm" {
   // atlas-load.mjs = the TypeORM provider, with uuid_generate_v4() rewritten
