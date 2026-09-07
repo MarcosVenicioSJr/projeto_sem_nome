@@ -248,6 +248,34 @@ generic cases. Dev-only boot errors (bad env vars) stay plain English.
 
 ---
 
+## ADR-014 — Source vs. built resolution for web / mobile
+
+**Context.** The API bundles `@org/*` from their `.ts` source (webpack +
+`NxAppWebpackPlugin` honoring the `@org/source` export condition). Next and Metro
+don't do that by default — they resolve a workspace package to its `main`/`module`
+field, i.e. `dist/`.
+
+**Decision.** Accept the split. Web and mobile consume the **built `dist/`** of
+`@org/contracts` / `@org/utils` / `@org/i18n`:
+
+- `nx build` / `nx test` already build those packages first (implicit dep), so CI
+  and one-off builds need nothing extra.
+- For hot-reload dev, the developer either runs
+  `nx watch -p contracts utils i18n -- nx build …` or opts the bundler into the
+  `@org/source` condition (`transpilePackages` + `resolve.conditionNames` for
+  Next; `unstable_enablePackageExports` + `unstable_conditionNames` for Metro).
+  The choice must be the same for web and mobile.
+
+Type-checking always uses source (all apps extend `tsconfig.base.json` with
+`customConditions: ["@org/source"]`), so types never lag.
+
+**Consequences.** Documented end-to-end in
+[shared-packages.md](./shared-packages.md), which is the file a new dev reads
+before wiring a shared package into an app. Consuming the schemas is otherwise
+identical to the API: import the schema, no `createZodDto`, no `class-validator`.
+
+---
+
 ## Known gaps
 
 - **`nx test contracts` / `nx test i18n` / `nx test utils`** fail

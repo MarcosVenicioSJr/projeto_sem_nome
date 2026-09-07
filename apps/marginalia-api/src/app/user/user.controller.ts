@@ -1,7 +1,8 @@
 import { Body, Controller, Get, Patch, Put, UseGuards } from '@nestjs/common';
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt';
 import { UserService } from './user.service';
-import { UpdatePreferencesDto, UpdateProfileDto } from './user.dto';
+import { UpdatePreferencesDto } from './dto/update-preferences.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 /**
  * Authenticated user's profile. The `id` comes from the access token (via
