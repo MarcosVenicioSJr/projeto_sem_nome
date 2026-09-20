@@ -25,35 +25,14 @@ export class UserEntity {
   name!: string;
 
   @Index({ unique: true })
-  @Column({ length: 20 })
-  username!: string;
-
-  @Index({ unique: true })
   @Column()
   email!: string;
 
   @Column({ name: 'password_hash' })
   passwordHash!: string;
 
-  @Column({ type: 'date', name: 'birth_date' })
-  birthDate!: string;
-
-  @Column({
-    type: 'enum',
-    enum: ACCOUNT_STATUS,
-    default: 'pending_verification',
-  })
-  status!: AccountStatus;
-
   @Column({ name: 'email_verified_at', type: 'timestamptz', nullable: true })
   emailVerifiedAt!: Date | null;
-
-  /** Genre slugs. The allowed values are enforced by the API contract, not the DB. */
-  @Column({ name: 'favorite_genres', type: 'simple-array', default: '' })
-  favoriteGenres!: string[];
-
-  @Column({ name: 'failed_login_attempts', type: 'int', default: 0 })
-  failedLoginAttempts!: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
