@@ -1,36 +1,56 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import type { UpdatePreferencesInput, UpdateProfileInput } from '@org/contracts';
+import {
+  ROLE,
+  type AccessTokenPayload,
+  type Me,
+  type UpdateProfileInput,
+} from '@org/contracts';
 import { AppException } from '../common/app.exception';
-import { UsersRepository } from '../database';
-import { toUser } from './user.mapper';
+import { ClientsRepository, MembersRepository } from '../database';
+import { toClient, toMember } from './user.mapper';
 
+/** The authenticated caller's own account, resolved by role from the token. */
 @Injectable()
 export class UserService {
-  constructor(private readonly users: UsersRepository) {}
+  constructor(
+    private readonly members: MembersRepository,
+    private readonly clients: ClientsRepository,
+  ) {}
 
-  async findById(id: string) {
-    const user = await this.users.findById(id);
-    if (!user) {
-      throw new AppException('errors.user.notFound', HttpStatus.NOT_FOUND);
+  async findMe({ sub, role }: AccessTokenPayload): Promise<Me> {
+    if (role !== ROLE.CLIENT) {
+      const member = await this.members.findById(sub);
+      if (!member) throw this.notFound();
+      return toMember(member);
     }
-    return toUser(user);
+    const client = await this.clients.findById(sub);
+    if (!client) throw this.notFound();
+    return toClient(client);
   }
 
-  async updateProfile(id: string, input: UpdateProfileInput) {
-    await this.ensureExists(id);
-    await this.users.update(id, input);
-    return this.findById(id);
-  }
-
-  async updatePreferences(id: string, input: UpdatePreferencesInput) {
-    await this.ensureExists(id);
-    await this.users.update(id, { favoriteGenres: input.favoriteGenres });
-    return this.findById(id);
-  }
-
-  private async ensureExists(id: string): Promise<void> {
-    if (!(await this.users.findById(id))) {
-      throw new AppException('errors.user.notFound', HttpStatus.NOT_FOUND);
+  async updateProfile(
+    caller: AccessTokenPayload,
+    input: UpdateProfileInput,
+  ): Promise<Me> {
+    const me = await this.findMe(caller);
+    if (input.email && input.email !== me.email) {
+      const taken =
+        me.role === ROLE.CLIENT
+          ? await this.clients.existsByEmail(input.email)
+          : await this.members.existsByEmail(input.email);
+      if (taken) {
+        throw new AppException('errors.auth.emailTaken', HttpStatus.CONFLICT);
+      }
     }
+    if (me.role === ROLE.CLIENT) {
+      await this.clients.update(me.id, input);
+    } else {
+      await this.members.update(me.id, input);
+    }
+    return this.findMe(caller);
+  }
+
+  private notFound() {
+    return new AppException('errors.user.notFound', HttpStatus.NOT_FOUND);
   }
 }

@@ -1,37 +1,31 @@
-import { Body, Controller, Get, Patch, Put, UseGuards } from '@nestjs/common';
-import { CurrentUser, JwtAuthGuard } from '../auth/jwt';
+import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import type { AccessTokenPayload } from '@org/contracts';
+import { CurrentUser, JwtAuthGuard, Roles, RolesGuard } from '../auth/jwt';
 import { UserService } from './user.service';
-import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 /**
- * Authenticated user's profile. The `id` comes from the access token (via
- * JwtAuthGuard + @CurrentUser), not a fixed value. Account creation lives in
- * AuthController.
+ * The authenticated caller's own profile (owner, employee or client). The
+ * identity comes from the access token (JwtAuthGuard + @CurrentUser). Account
+ * creation lives in AuthController / TenantController / MemberController.
  */
 @Controller('user')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('me')
-  me(@CurrentUser('sub') userId: string) {
-    return this.userService.findById(userId);
+  me(@CurrentUser() caller: AccessTokenPayload) {
+    return this.userService.findMe(caller);
   }
 
+  /** Employees cannot edit their own data: every edit goes through the owner. */
   @Patch('me')
+  @Roles('owner', 'client')
   updateProfile(
-    @CurrentUser('sub') userId: string,
+    @CurrentUser() caller: AccessTokenPayload,
     @Body() dto: UpdateProfileDto,
   ) {
-    return this.userService.updateProfile(userId, dto);
-  }
-
-  @Put('me/preferences')
-  updatePreferences(
-    @CurrentUser('sub') userId: string,
-    @Body() dto: UpdatePreferencesDto,
-  ) {
-    return this.userService.updatePreferences(userId, dto);
+    return this.userService.updateProfile(caller, dto);
   }
 }

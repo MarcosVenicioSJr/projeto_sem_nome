@@ -1,22 +1,32 @@
-import type { Genre, User } from '@org/contracts';
-import type { UserEntity } from '../database';
+import type { Client, Member } from '@org/contracts';
+import type { ClientEntity, MemberEntity } from '../database';
 
 /**
- * DB entity -> contract output shape (@org/contracts).
- * `status` is checked structurally against `User['status']` at compile time —
- * if the entity's ACCOUNT_STATUS and the contract's accountStatusSchema drift,
- * this file stops compiling.
+ * DB entity -> contract output shape (@org/contracts). Never exposes
+ * `passwordHash`.
  */
-export function toUser(e: UserEntity): User {
+export function toMember(e: MemberEntity): Member {
+  const base = {
+    id: e.id,
+    tenantId: e.tenantId,
+    name: e.name,
+    email: e.email,
+    phone: e.phone,
+    createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
+  };
+  return e.role === 'owner'
+    ? { ...base, role: 'owner' }
+    : { ...base, role: 'employee' };
+}
+
+export function toClient(e: ClientEntity): Client {
   return {
     id: e.id,
+    role: 'client',
     name: e.name,
-    username: e.username,
     email: e.email,
-    birthDate: e.birthDate,
-    // written through favoriteGenresSchema, so the values are known-good slugs
-    favoriteGenres: (e.favoriteGenres ?? []) as Genre[],
-    status: e.status,
+    phone: e.phone,
     createdAt: e.createdAt.toISOString(),
     updatedAt: e.updatedAt.toISOString(),
   };

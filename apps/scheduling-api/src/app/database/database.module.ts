@@ -2,27 +2,26 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { Env } from '../config';
-import { UserEntity } from './entities/user.entity';
-import { VerificationCodeEntity } from './entities/verification-code.entity';
-import { RefreshTokenEntity } from './entities/refresh-token.entity';
-import { TermsAcceptanceEntity } from './entities/terms-acceptance.entity';
-import { UsersRepository } from './repositories/users.repository';
-import { VerificationCodesRepository } from './repositories/verification-codes.repository';
-import { RefreshTokensRepository } from './repositories/refresh-tokens.repository';
-import { TermsAcceptancesRepository } from './repositories/terms-acceptances.repository';
+import { ClientEntity } from './entities/client.entity';
+import { MemberEntity } from './entities/member.entity';
+import { TenantClientEntity } from './entities/tenant-client.entity';
+import { TenantEntity } from './entities/tenant.entity';
+
+import { ClientsRepository } from './repositories/clients.repository';
+import { MembersRepository } from './repositories/members.repository';
+import { TenantsRepository } from './repositories/tenants.repository';
 
 const ENTITIES = [
-  UserEntity,
-  VerificationCodeEntity,
-  RefreshTokenEntity,
-  TermsAcceptanceEntity,
+  TenantEntity,
+  MemberEntity,
+  ClientEntity,
+  TenantClientEntity,
 ];
 
 const REPOSITORIES = [
-  UsersRepository,
-  VerificationCodesRepository,
-  RefreshTokensRepository,
-  TermsAcceptancesRepository,
+  TenantsRepository,
+  MembersRepository,
+  ClientsRepository,
 ];
 
 /**
