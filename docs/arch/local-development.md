@@ -30,16 +30,21 @@ npx nx serve scheduling-api
 # http://localhost:3000/api
 ```
 
-Signup flow (Security spec) — the verification code arrives in **Mailpit**
-(http://localhost:8025):
+Onboarding and auth (multitenant). The owner creates the company and their
+employees; clients have a global account and are linked to a company through its
+booking link:
 
 ```
-POST /api/auth/register        { name, username, email, password, birthDate }
-  -> { registrationId, ... }
-POST /api/auth/verify-email     { registrationId, code }
-POST /api/auth/accept-terms     { registrationId, termsVersion, acceptedTerms, consent* }
-POST /api/auth/login            { username, password }  -> { accessToken, refreshToken }
-GET  /api/user/me               Authorization: Bearer <accessToken>
+POST  /api/tenants                   { tenant: { name, slug }, owner: { name, email, phone, password } }
+POST  /api/auth/member/login         { email, password }  -> { accessToken, accessTokenExpiresInSeconds }   (owner or employee)
+POST  /api/members/employees         (owner token) { name, email, phone, password }
+GET   /api/members/employees         (owner token)
+PATCH /api/members/employees/:id     (owner token) { name?, email?, phone? }
+POST  /api/auth/client/register      { name, email, phone, password }
+POST  /api/auth/client/login         { email, password }  -> { accessToken, accessTokenExpiresInSeconds }
+GET   /api/t/:slug                   public data for the booking page
+POST  /api/t/:slug/clients/join      (client token) links the client to the company
+GET   /api/user/me                   Authorization: Bearer <accessToken>
 ```
 
 Send `Accept-Language: pt-BR` (or `en`) to pick the response language.
