@@ -80,7 +80,7 @@ route. Cost: one indirection (the reader must know the pipe exists) — document
 in the module.
 
 Acceptable alternative for one-offs (script, microservice): the per-parameter
-pipe. See [code](../../apps/marginalia-api/src/app/common/zod.dto.ts).
+pipe. See [code](../../apps/scheduling-api/src/app/common/zod.dto.ts).
 
 ---
 
@@ -116,7 +116,7 @@ exposes business-named methods (`existsByUsername`, `issue`, `revokeAllForUser`)
 Services depend on those classes, never on TypeORM.
 
 Entities and repositories are centralized in
-`apps/marginalia-api/src/app/database/`. A single `DatabaseModule` opens the
+`apps/scheduling-api/src/app/database/`. A single `DatabaseModule` opens the
 connection (`forRootAsync` reading `ConfigService`) and exports the repositories;
 `AuthModule` and `UserModule` just import it.
 
@@ -151,7 +151,7 @@ to inspect, + Mailpit for email — ADR-011), reading credentials from the root
 `.env`, with a named volume and a healthcheck. See
 [local-development.md](./local-development.md).
 
-**Consequences.** `docker compose up -d` + `nx serve marginalia-api` and it runs.
+**Consequences.** `docker compose up -d` + `nx serve scheduling-api` and it runs.
 No Postgres installed on the machine.
 
 ---
@@ -294,7 +294,7 @@ owns the schema lifecycle.
   (integrity checksum), committed to git.
 - `synchronize` is hardcoded `false`; the `DB_SYNCHRONIZE` env var is removed.
 - `data-source.ts` (the deferred TypeORM CLI entry point) is deleted.
-- Config in `apps/marginalia-api/atlas.hcl`; commands wrapped as Nx targets
+- Config in `apps/scheduling-api/atlas.hcl`; commands wrapped as Nx targets
   (`migrate-diff`, `migrate-apply`, `migrate-status`) that load the root `.env`
   via `dotenv-cli`. All Community Edition — no Atlas Pro. (`atlas migrate hash`,
   for a broken `atlas.sum`, is run raw — no target.)
@@ -321,24 +321,24 @@ machines + CI). Everything else is npm. Workflow mirrors
 
 ## ADR-016 — e2e: black-box, self-bootstrapping infra
 
-**Context.** `marginalia-api-e2e` was the generator scaffold (asserted a removed
+**Context.** `scheduling-api-e2e` was the generator scaffold (asserted a removed
 `GET /api`, and couldn't boot the API without a DB). The API now needs Postgres +
 a migrated schema + an SMTP sink to run.
 
 **Decision.** Keep e2e **black-box** — it hits the real HTTP server, no in-process
 `AppModule` import. jest `globalSetup` owns the lifecycle:
 
-1. `docker compose up -d --wait db mail` + `nx run marginalia-api:migrate-apply`
+1. `docker compose up -d --wait db mail` + `nx run scheduling-api:migrate-apply`
    (both idempotent; skipped when `E2E_SKIP_INFRA=true`, e.g. in CI where the job
    owns infra).
-2. `killPort` then `spawn('node', ['apps/marginalia-api/dist/main.js'])` — the API
+2. `killPort` then `spawn('node', ['apps/scheduling-api/dist/main.js'])` — the API
    is started here (not `nx serve`) so ordering is deterministic.
 3. `waitForPortOpen`; `globalTeardown` kills it (+ `docker compose stop` in CI).
 
 The verification code is read from **Mailpit's REST API** (`/api/v1/search`) — the
 code is never exposed by the API itself.
 
-The `e2e` target `dependsOn` is just `@org/marginalia-api:build` (needs `dist/`).
+The `e2e` target `dependsOn` is just `@org/scheduling-api:build` (needs `dist/`).
 Coverage: full signup -> login -> `/user/me` happy path, `username-available`,
 localized 422 (`Accept-Language`), generic 401s.
 

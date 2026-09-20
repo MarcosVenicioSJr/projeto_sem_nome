@@ -31,7 +31,7 @@ Install the Atlas CLI (the npm provider is already a dev dependency):
 - macOS/Linux: `curl -sSf https://atlasgo.sh | sh`
 - Docker must be running (Atlas spins up an ephemeral Postgres to plan the diff).
 
-Config lives in [`apps/marginalia-api/atlas.hcl`](../../apps/marginalia-api/atlas.hcl).
+Config lives in [`apps/scheduling-api/atlas.hcl`](../../apps/scheduling-api/atlas.hcl).
 The desired schema is produced by `atlas-load.mjs` next to it — the TypeORM
 provider, with `uuid_generate_v4()` rewritten to `gen_random_uuid()` (PG 13+
 core, so no `uuid-ossp` extension is needed anywhere).
@@ -39,22 +39,22 @@ core, so no `uuid-ossp` extension is needed anywhere).
 ## Day-to-day
 
 All commands are Nx targets that load the root `.env` first (via `dotenv-cli`)
-and `cd` into `apps/marginalia-api`.
+and `cd` into `apps/scheduling-api`.
 
 ```bash
 # 1. change an entity (or the Zod schema it mirrors)
 
 # 2. generate the migration
-npx nx run marginalia-api:migrate-diff -- add_user_locale
+npx nx run scheduling-api:migrate-diff -- add_user_locale
 #    -> src/app/database/migrations/2026...._add_user_locale.sql  (+ atlas.sum)
 
 # 3. review the SQL, commit it together with the entity change
 
 # 4. apply to your local DB
-npx nx run marginalia-api:migrate-apply
+npx nx run scheduling-api:migrate-apply
 
 # other
-npx nx run marginalia-api:migrate-status     # what's pending
+npx nx run scheduling-api:migrate-status     # what's pending
 ```
 
 If `atlas.sum` ever goes out of sync (a merge, a hand-edit you actually meant),
@@ -62,7 +62,7 @@ recompute it once with the raw CLI — it's not a routine step, so there's no Nx
 target for it:
 
 ```bash
-cd apps/marginalia-api && atlas migrate hash --env local
+cd apps/scheduling-api && atlas migrate hash --env local
 ```
 
 `atlas migrate lint` (destructive-op / lock analysis) moved to Atlas Pro in
@@ -82,7 +82,7 @@ and the compose stack; also runs the e2e suite):
 - **drift check** — runs `migrate-diff` and fails if it produced a new `.sql`
   (i.e. an entity changed without a matching migration). Community Edition.
 
-**Deploy:** run `nx run marginalia-api:migrate-apply` (pointed at the target DB
+**Deploy:** run `nx run scheduling-api:migrate-apply` (pointed at the target DB
 via `DB_*` env) **before** starting the API. Atlas has no Node runtime library,
 so the app does not self-migrate.
 

@@ -4,16 +4,13 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/marginalia-api-e2e"
+      "path": "./apps/scheduling-api-e2e"
     },
     {
-      "path": "./apps/marginalia-api"
+      "path": "./apps/scheduling-api"
     },
     {
-      "path": "./apps/marginalia-mobile"
-    },
-    {
-      "path": "./apps/marginalia-web"
+      "path": "./apps/scheduling-web"
     },
     {
       "path": "./packages/contracts"

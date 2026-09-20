@@ -5,7 +5,7 @@
 ## How it works
 
 - A single `.env` at the monorepo **root**. It is read:
-  - by **marginalia-api** via `ConfigModule` (`apps/marginalia-api/src/app/config/`);
+  - by **scheduling-api** via `ConfigModule` (`apps/scheduling-api/src/app/config/`);
   - by **docker-compose** (`${VAR}` substitution).
 - `.env.example` is versioned and is the reference. `.env` is in `.gitignore`.
 - `env.schema.ts` (Zod) is the **only door** to `process.env`. Validated at boot:
@@ -27,23 +27,23 @@
 | `JWT_SECRET` | — (**required**, ≥16 chars) | JWT signing secret. TTLs (15m/5h) are fixed in code, not env |
 | `DB_HOST` | `localhost` | Postgres host |
 | `DB_PORT` | `5432` | Postgres port |
-| `DB_USER` | `marginalia` | database user |
-| `DB_PASSWORD` | `marginalia` | database password |
-| `DB_NAME` | `marginalia` | database name |
+| `DB_USER` | `scheduling` | database user |
+| `DB_PASSWORD` | `scheduling` | database password |
+| `DB_NAME` | `scheduling` | database name |
 | `DB_LOGGING` | `false` | log SQL |
 | `MAIL_HOST` | `localhost` | SMTP host (local: Mailpit; prod: e.g. `in-v3.mailjet.com`) |
 | `MAIL_PORT` | `1025` | SMTP port (Mailjet: `587`) |
 | `MAIL_SECURE` | `false` | implicit TLS (port 465) |
 | `MAIL_USER` | `` | SMTP user; empty = no auth (Mailpit) |
 | `MAIL_PASSWORD` | `` | SMTP password/secret |
-| `MAIL_FROM` | `Marginália <no-reply@marginalia.local>` | sender |
+| `MAIL_FROM` | `Scheduling <no-reply@scheduling.local>` | sender |
 
 Boolean vars accept exactly `"true"` / `"false"`. The DB schema is managed by
 Atlas ([migrations.md](./migrations.md)) — there is no `DB_SYNCHRONIZE`.
 
 ## Adding a variable
 
-1. New field in `apps/marginalia-api/src/app/config/env.schema.ts` (with a default, or required).
+1. New field in `apps/scheduling-api/src/app/config/env.schema.ts` (with a default, or required).
 2. A line in `.env.example` (and in your `.env`).
 3. Use it via `config.get('NEW_VAR', { infer: true })`.
 

@@ -1,4 +1,4 @@
-# Architecture — Marginália
+# Architecture — Scheduling
 
 Living documentation of the technical decisions. Complements the product specs in
 [`../product`](../product) and [`../specs`](../specs).
@@ -8,13 +8,13 @@ Living documentation of the technical decisions. Complements the product specs i
 | Doc | Topic |
 |---|---|
 | [decisions.md](./decisions.md) | Architecture decision log (ADR) — **start here** |
-| [shared-packages.md](./shared-packages.md) | Consuming `@org/contracts` / `@org/utils` / `@org/i18n` from api/web/mobile |
+| [shared-packages.md](./shared-packages.md) | Consuming `@org/contracts` / `@org/utils` / `@org/i18n` from api/web |
 | [persistence.md](./persistence.md) | TypeORM + repository pattern, entities |
 | [migrations.md](./migrations.md) | Schema migrations with Atlas |
 | [configuration.md](./configuration.md) | Environment variables (`@nestjs/config` + Zod validation) |
 | [local-development.md](./local-development.md) | Bring up DB + app locally (docker-compose) |
 
-## Layering (backend — `apps/marginalia-api`)
+## Layering (backend — `apps/scheduling-api`)
 
 ```
 HTTP  ─►  Controller            thin routes; @Body/@Query typed by createZodDto
@@ -33,7 +33,7 @@ HTTP  ─►  Controller            thin routes; @Body/@Query typed by createZod
 
 - **`@org/contracts`** (`packages/contracts`) — the single source of truth for
   shapes: Zod schemas + inferred types, grouped by domain (`common/`, `auth/`,
-  `user/`), consumed by API, web and mobile.
+  `user/`), consumed by API and web.
 - **`@org/utils`** (`packages/utils`) — pure TS helpers, no framework and no Zod
   (e.g. `maskEmail`). See [ADR-012](./decisions.md#adr-012--orgutils-pure-helpers-separate-from-contracts).
 - **`@org/i18n`** (`packages/i18n`) — framework-free message catalogs + resolvers

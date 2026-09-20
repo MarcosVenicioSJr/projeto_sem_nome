@@ -3,9 +3,9 @@
 > Decisions: [ADR-002](./decisions.md#adr-002--orgcontracts-shared-contracts-in-zod),
 > [ADR-012](./decisions.md#adr-012--orgutils-pure-helpers-separate-from-contracts),
 > [ADR-013](./decisions.md#adr-013--i18n-message-keys--per-locale-catalog),
-> [ADR-014](./decisions.md#adr-014--source-vs-built-resolution-for-web--mobile).
+> [ADR-014](./decisions.md#adr-014--source-vs-built-resolution-for-web--mobile) (mobile app has since been removed; the split still applies to web).
 
-Three framework-free packages are shared by the API, web and mobile. **Do not
+Three framework-free packages are shared by the API and web. **Do not
 fork their logic into an app.**
 
 | Package | Holds | Import example |
@@ -29,7 +29,7 @@ fork their logic into an app.**
 ```bash
 npm pkg set dependencies.@org/contracts="*" dependencies.@org/i18n="*" \
              dependencies.zod="^4.1.11" \
-             -w @org/marginalia-web        # or @org/marginalia-mobile
+             -w @org/scheduling-web
 npm install
 npx nx sync                                # updates tsconfig references
 ```
@@ -44,23 +44,23 @@ Types work immediately: every app extends `tsconfig.base.json`, which carries
 
 | Consumer | Resolves `@org/*` to | Why |
 |---|---|---|
-| `marginalia-api` | **source `.ts`** | webpack + `NxAppWebpackPlugin` honors the `@org/source` export condition from `tsconfig` |
-| `marginalia-web`, `marginalia-mobile` | **built `dist/`** (default) | Next / Metro fall back to the package's `main`/`module` field |
+| `scheduling-api` | **source `.ts`** | webpack + `NxAppWebpackPlugin` honors the `@org/source` export condition from `tsconfig` |
+| `scheduling-web` | **built `dist/`** (default) | Next falls back to the package's `main`/`module` field |
 
 Consequences:
 
-- **`nx build marginalia-web` / `marginalia-mobile` is fine as-is** — Nx builds
+- **`nx build scheduling-web` is fine as-is** — Nx builds
   `contracts` / `utils` / `i18n` first (implicit dependency).
-- **Dev with hot-reload** (`nx dev`, Metro): the `dist/` can go stale after you
+- **Dev with hot-reload** (`nx dev`): the `dist/` can go stale after you
   edit a schema. Pick one:
 
   1. Rebuild the packages on change, in a side terminal:
      ```bash
      npx nx watch -p contracts utils i18n -- nx build contracts utils i18n
      ```
-  2. Or point the bundler at the source (packages become "live"):
+  2. Or point the bundler at the source (package becomes "live"):
 
-     **Next** — `apps/marginalia-web/next.config.js`:
+     **Next** — `apps/scheduling-web/next.config.js`:
      ```js
      const nextConfig = {
        transpilePackages: ['@org/contracts', '@org/utils', '@org/i18n'],
@@ -71,19 +71,11 @@ Consequences:
      };
      ```
 
-     **Metro** — `apps/marginalia-mobile/metro.config.js`, in `resolver`:
-     ```js
-     unstable_enablePackageExports: true,
-     unstable_conditionNames: ['@org/source', 'require', 'react-native'],
-     ```
-
-Whichever you pick, keep it consistent across web and mobile.
-
 ---
 
 ## Standard usage
 
-### Forms (web and mobile both use react-hook-form)
+### Forms (web uses react-hook-form)
 
 ```tsx
 import { zodResolver } from '@hookform/resolvers/zod';

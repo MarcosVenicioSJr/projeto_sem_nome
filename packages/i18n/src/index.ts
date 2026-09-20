@@ -1,4 +1,4 @@
-// @org/i18n — framework-free message catalog + resolvers, shared by api/web/mobile.
+// @org/i18n — framework-free message catalog + resolvers, shared by api/web.
 export * from './types.js';
 export * from './translate.js';
 export * from './accept-language.js';
