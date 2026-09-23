@@ -24,30 +24,23 @@ export const ptBR: Catalog = {
 
   // ── Validação por campo ────────────────────────────────────────────
   'validation.name.tooShort': 'Informe seu nome',
-  'validation.username.pattern':
-    'Comece com letra e use apenas letras, números, "." e "_" (sem ".." ou "." no fim)',
+  'validation.phone.format': 'Informe um telefone com DDD (11 dígitos)',
+  'validation.slug.format':
+    'Use de 3 a 60 letras minúsculas, números e hífens simples',
   'validation.password.minLength': 'Use ao menos 8 caracteres',
   'validation.password.uppercase': 'Inclua uma letra maiúscula',
   'validation.password.lowercase': 'Inclua uma letra minúscula',
   'validation.password.number': 'Inclua um número',
-  'validation.otp.length': 'Digite o código de 6 dígitos',
-  'validation.birthDate.future': 'A data não pode ser no futuro',
-  'validation.birthDate.minAge': 'Você precisa ter ao menos 18 anos',
-  'validation.genres.duplicate': 'Remova os gêneros repetidos',
-  'validation.terms.required':
-    'É preciso aceitar os Termos e a Política de Privacidade',
 
   // ── Erros de domínio (API) ────────────────────────────────────────
-  'errors.auth.usernameTaken': 'Usuário já está em uso',
   'errors.auth.emailTaken': 'E-mail já cadastrado',
-  'errors.auth.invalidCredentials': 'Usuário ou senha incorretos',
-  'errors.auth.accountBlocked':
-    'Conta bloqueada. Use "Esqueci minha senha" para desbloquear.',
-  'errors.auth.codeInvalidOrExpired': 'Código incorreto ou expirado',
-  'errors.auth.codeIncorrect': 'Código incorreto. Tentativas restantes: {remaining}',
-  'errors.auth.registrationNotFound': 'Cadastro não encontrado',
+  'errors.auth.invalidCredentials': 'E-mail ou senha incorretos',
+  'errors.auth.forbidden': 'Você não tem permissão para isso',
   'errors.auth.tokenMissing': 'Token de acesso ausente',
   'errors.auth.tokenInvalid': 'Token inválido ou expirado',
+  'errors.tenant.notFound': 'Empresa não encontrada',
+  'errors.tenant.slugTaken': 'Endereço da empresa já está em uso',
+  'errors.member.notFound': 'Funcionário não encontrado',
   'errors.user.notFound': 'Usuário não encontrado',
   'errors.internal': 'Algo deu errado',
   'errors.validationFailed': 'Falha na validação',

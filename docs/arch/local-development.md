@@ -12,10 +12,10 @@
 npm install
 cp .env.example .env          # adjust JWT_SECRET if you want
 docker compose up -d          # Postgres + Mailpit
-npx nx run marginalia-api:migrate-apply   # create the schema (Atlas)
+npx nx run scheduling-api:migrate-apply   # create the schema (Atlas)
 ```
 
-- Postgres: `localhost:5432` (user/pass/db = `marginalia`).
+- Postgres: `localhost:5432` (user/pass/db = `scheduling`).
 - **Mailpit** (email catcher): SMTP on `localhost:1025`, UI on
   http://localhost:8025 — every email the API sends lands here (the signup
   verification code shows up in that inbox).
@@ -26,20 +26,25 @@ Schema changes later: `migrate-diff -- <name>` then `migrate-apply` — see
 ## Run the API
 
 ```bash
-npx nx serve marginalia-api
+npx nx serve scheduling-api
 # http://localhost:3000/api
 ```
 
-Signup flow (Security spec) — the verification code arrives in **Mailpit**
-(http://localhost:8025):
+Onboarding and auth (multitenant). The owner creates the company and their
+employees; clients have a global account and are linked to a company through its
+booking link:
 
 ```
-POST /api/auth/register        { name, username, email, password, birthDate }
-  -> { registrationId, ... }
-POST /api/auth/verify-email     { registrationId, code }
-POST /api/auth/accept-terms     { registrationId, termsVersion, acceptedTerms, consent* }
-POST /api/auth/login            { username, password }  -> { accessToken, refreshToken }
-GET  /api/user/me               Authorization: Bearer <accessToken>
+POST  /api/tenants                   { tenant: { name, slug }, owner: { name, email, phone, password } }
+POST  /api/auth/member/login         { email, password }  -> { accessToken, accessTokenExpiresInSeconds }   (owner or employee)
+POST  /api/members/employees         (owner token) { name, email, phone, password }
+GET   /api/members/employees         (owner token)
+PATCH /api/members/employees/:id     (owner token) { name?, email?, phone? }
+POST  /api/auth/client/register      { name, email, phone, password }
+POST  /api/auth/client/login         { email, password }  -> { accessToken, accessTokenExpiresInSeconds }
+GET   /api/t/:slug                   public data for the booking page
+POST  /api/t/:slug/clients/join      (client token) links the client to the company
+GET   /api/user/me                   Authorization: Bearer <accessToken>
 ```
 
 Send `Accept-Language: pt-BR` (or `en`) to pick the response language.
@@ -47,7 +52,7 @@ Send `Accept-Language: pt-BR` (or `en`) to pick the response language.
 ## e2e
 
 ```bash
-npx nx e2e marginalia-api-e2e
+npx nx e2e scheduling-api-e2e
 ```
 
 Self-bootstrapping: `globalSetup` brings up docker-compose, applies migrations,
@@ -62,7 +67,7 @@ docker compose logs -f db      # database logs
 docker compose down            # stop containers (data stays in the volume)
 docker compose down -v         # stop and DELETE the data
 
-npx nx run-many -t typecheck build test -p marginalia-api contracts utils i18n
+npx nx run-many -t typecheck build test -p scheduling-api contracts utils i18n
 npx nx sync                    # sync tsconfig references
 ```
 

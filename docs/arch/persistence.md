@@ -6,7 +6,7 @@
 ## Structure
 
 ```
-apps/marginalia-api/src/app/database/
+apps/scheduling-api/src/app/database/
   database.module.ts        forRootAsync (connection) + forFeature + providers/exports
   enums/
     account-status.enum.ts        ACCOUNT_STATUS / AccountStatus
@@ -22,8 +22,8 @@ apps/marginalia-api/src/app/database/
     refresh-tokens.repository.ts
     terms-acceptances.repository.ts
   migrations/               Atlas *.sql + atlas.sum (see migrations.md)
-apps/marginalia-api/atlas.hcl       Atlas config
-apps/marginalia-api/atlas-load.mjs  provider wrapper (uuid rewrite)
+apps/scheduling-api/atlas.hcl       Atlas config
+apps/scheduling-api/atlas-load.mjs  provider wrapper (uuid rewrite)
 ```
 
 Tables follow Security spec §8 (with the ADR-009/010 adjustments).
@@ -79,7 +79,7 @@ repositories. No circular dependency (`DatabaseModule` knows nobody).
 
 `synchronize` is **always `false`**. The schema is managed by **Atlas**
 ([ADR-015](./decisions.md#adr-015--atlas-for-schema-migrations)): edit an entity,
-then `nx run marginalia-api:migrate-diff -- <name>` to generate a `.sql`
+then `nx run scheduling-api:migrate-diff -- <name>` to generate a `.sql`
 migration, `migrate-apply` to run it. Full workflow in
 [migrations.md](./migrations.md).
 

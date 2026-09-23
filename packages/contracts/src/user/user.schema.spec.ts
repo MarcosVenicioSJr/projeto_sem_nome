@@ -1,35 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { registerSchema } from '../auth/register.schema.js';
-import { acceptTermsSchema } from '../auth/accept-terms.schema.js';
-import {
-  passwordSchema,
-  favoriteGenresSchema,
-  usernameSchema,
-} from '../common/index.js';
+import { loginSchema } from '../auth/login.schema.js';
+import { createTenantSchema, slugSchema } from '../tenant/tenant.schema.js';
+import { passwordSchema, phoneSchema } from '../common/index.js';
+import { meSchema, roleSchema } from './user.schema.js';
+import { accessTokenPayloadSchema } from '../auth/token.schema.js';
 
 const validRegister = {
   name: 'Helena Cardoso',
-  username: 'HelenaCardoso',
   email: '  Helena@Gmail.com ',
+  phone: '11987654321',
   password: 'Abcd1234',
-  birthDate: '1988-03-14',
 };
 
 describe('registerSchema', () => {
-  it('normalizes username and email', () => {
-    const parsed = registerSchema.parse(validRegister);
-    expect(parsed.username).toBe('helenacardoso');
-    expect(parsed.email).toBe('helena@gmail.com');
-  });
-
-  it('rejects someone under 18', () => {
-    const seventeen = new Date();
-    seventeen.setFullYear(seventeen.getFullYear() - 17);
-    const result = registerSchema.safeParse({
-      ...validRegister,
-      birthDate: seventeen.toISOString().slice(0, 10),
-    });
-    expect(result.success).toBe(false);
+  it('normalizes email', () => {
+    expect(registerSchema.parse(validRegister).email).toBe('helena@gmail.com');
   });
 
   it('emits i18n keys, not prose, as issue messages', () => {
@@ -38,38 +24,54 @@ describe('registerSchema', () => {
     const messages = result.error!.issues.map((i) => i.message);
     expect(messages).toContain('validation.password.minLength');
   });
+
+  it('does not accept a role from the client', () => {
+    const parsed = registerSchema.parse({ ...validRegister, role: 'owner' });
+    expect(parsed).not.toHaveProperty('role');
+  });
 });
 
-describe('usernameSchema (Security spec §2.2)', () => {
-  it('accepts letters/digits/./_ starting with a letter', () => {
-    expect(usernameSchema.parse('Helena.Cardoso_1')).toBe('helena.cardoso_1');
+describe('loginSchema', () => {
+  it('uses email and only requires a non-empty password', () => {
+    expect(loginSchema.safeParse({ email: 'a@b.co', password: 'x' }).success).toBe(true);
+    expect(loginSchema.safeParse({ email: 'a@b.co', password: '' }).success).toBe(false);
+  });
+});
+
+describe('roleSchema', () => {
+  it('only allows client, owner and employee', () => {
+    expect(roleSchema.safeParse('client').success).toBe(true);
+    expect(roleSchema.safeParse('owner').success).toBe(true);
+    expect(roleSchema.safeParse('employee').success).toBe(true);
+    expect(roleSchema.safeParse('admin').success).toBe(false);
+  });
+});
+
+describe('slugSchema', () => {
+  it('normalizes and accepts kebab-case', () => {
+    expect(slugSchema.parse(' Clinica-Sorriso ')).toBe('clinica-sorriso');
   });
 
-  it.each(['1ana', '_ana', '.ana', 'ana.', 'ma..ria', 'ab'])(
-    'rejects %s',
-    (bad) => {
-      expect(usernameSchema.safeParse(bad).success).toBe(false);
-    },
-  );
+  it.each(['ab', '-clinic', 'clinic-', 'cli nic', 'cli--nic'])('rejects %s', (bad) => {
+    expect(slugSchema.safeParse(bad).success).toBe(false);
+  });
 });
 
-describe('acceptTermsSchema (LGPD §3)', () => {
-  it('defaults granular consents to false and requires the terms checkbox', () => {
-    const parsed = acceptTermsSchema.parse({
-      registrationId: '00000000-0000-4000-8000-000000000000',
-      termsVersion: '2026-01-01',
-      acceptedTerms: true,
+describe('createTenantSchema', () => {
+  it('validates company and owner together', () => {
+    const result = createTenantSchema.safeParse({
+      tenant: { name: 'Clínica Sorriso', slug: 'clinica-sorriso' },
+      owner: { ...validRegister },
     });
-    expect(parsed.consentRecommendations).toBe(false);
-    expect(parsed.consentMarketing).toBe(false);
+    expect(result.success).toBe(true);
+  });
+});
 
-    expect(
-      acceptTermsSchema.safeParse({
-        registrationId: '00000000-0000-4000-8000-000000000000',
-        termsVersion: '2026-01-01',
-        acceptedTerms: false,
-      }).success,
-    ).toBe(false);
+describe('phoneSchema', () => {
+  it('requires 11 digits', () => {
+    expect(phoneSchema.safeParse('11987654321').success).toBe(true);
+    expect(phoneSchema.safeParse('1198765432').success).toBe(false);
+    expect(phoneSchema.safeParse('(11)98765432').success).toBe(false);
   });
 });
 
@@ -80,11 +82,38 @@ describe('passwordSchema', () => {
   });
 });
 
-describe('favoriteGenresSchema', () => {
-  it('allows an empty list (skip) but not duplicates', () => {
-    expect(favoriteGenresSchema.parse([])).toEqual([]);
-    expect(favoriteGenresSchema.safeParse(['romance', 'romance']).success).toBe(
-      false,
-    );
+describe('accessTokenPayloadSchema', () => {
+  const base = { sub: '11111111-1111-4111-8111-111111111111', name: 'A B' };
+
+  it.each(['owner', 'employee'])('requires tenantId for %s', (role) => {
+    expect(accessTokenPayloadSchema.safeParse({ ...base, role }).success).toBe(false);
+    expect(
+      accessTokenPayloadSchema.safeParse({
+        ...base,
+        role,
+        tenantId: '22222222-2222-4222-8222-222222222222',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('a client token has no tenant', () => {
+    const parsed = accessTokenPayloadSchema.parse({ ...base, role: 'client' });
+    expect(parsed).not.toHaveProperty('tenantId');
+  });
+});
+
+describe('meSchema', () => {
+  it('discriminates by role', () => {
+    const account = {
+      id: '11111111-1111-4111-8111-111111111111',
+      name: 'A B',
+      phone: '11987654321',
+      email: 'a@b.co',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    expect(meSchema.safeParse({ ...account, role: 'client' }).success).toBe(true);
+    expect(meSchema.safeParse({ ...account, role: 'owner' }).success).toBe(false);
+    expect(meSchema.safeParse({ ...account, role: 'employee' }).success).toBe(false);
   });
 });

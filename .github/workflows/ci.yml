@@ -57,16 +57,16 @@ jobs:
       # Uses `migrate diff` (Community Edition). Reviewing the generated .sql in
       # the PR is the safety gate (`migrate lint` moved to Atlas Pro in v0.38).
       - run: |
-          npx nx run marginalia-api:migrate-diff -- ci_drift_check
-          if [ -n "$(git status --porcelain apps/marginalia-api/src/app/database/migrations)" ]; then
-            echo "::error::Entities changed without a migration. Run: nx run marginalia-api:migrate-diff -- <name>"
-            git --no-pager diff apps/marginalia-api/src/app/database/migrations
+          npx nx run scheduling-api:migrate-diff -- ci_drift_check
+          if [ -n "$(git status --porcelain apps/scheduling-api/src/app/database/migrations)" ]; then
+            echo "::error::Entities changed without a migration. Run: nx run scheduling-api:migrate-diff -- <name>"
+            git --no-pager diff apps/scheduling-api/src/app/database/migrations
             exit 1
           fi
 
       # e2e: bring up the stack, apply the schema, run the suite against a real
       # API process (global-setup spawns it; E2E_SKIP_INFRA lets the job own infra).
       - run: docker compose up -d --wait db mail
-      - run: npx nx run marginalia-api:migrate-apply
-      - run: npx nx run marginalia-api:build
-      - run: E2E_SKIP_INFRA=true npx nx e2e marginalia-api-e2e
+      - run: npx nx run scheduling-api:migrate-apply
+      - run: npx nx run scheduling-api:build
+      - run: E2E_SKIP_INFRA=true npx nx e2e scheduling-api-e2e

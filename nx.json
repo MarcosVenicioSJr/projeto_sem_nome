@@ -51,7 +51,7 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/marginalia-api-e2e/**/*"]
+      "exclude": ["apps/scheduling-api-e2e/**/*"]
     },
     {
       "plugin": "@nx/react-native/plugin",

@@ -1,5 +1,5 @@
-# Marginália local infra: Postgres + Mailpit (local email catcher).
-# Reads credentials from the root .env (the same one marginalia-api uses).
+# Scheduling local infra: Postgres + Mailpit (local email catcher).
+# Reads credentials from the root .env (the same one scheduling-api uses).
 #
 #   docker compose up -d        # start
 #   docker compose logs -f db   # follow
@@ -9,18 +9,18 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: marginalia-db
+    container_name: scheduling-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-marginalia}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-marginalia}
-      POSTGRES_DB: ${DB_NAME:-marginalia}
+      POSTGRES_USER: ${DB_USER:-scheduling}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-scheduling}
+      POSTGRES_DB: ${DB_NAME:-scheduling}
     ports:
       - '${DB_PORT:-5432}:5432'
     volumes:
-      - marginalia_pgdata:/var/lib/postgresql/data
+      - scheduling_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-marginalia} -d ${DB_NAME:-marginalia}']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-scheduling} -d ${DB_NAME:-scheduling}']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -29,7 +29,7 @@ services:
   # In staging/prod point MAIL_* at a real SMTP (e.g. Mailjet).
   mail:
     image: axllent/mailpit:latest
-    container_name: marginalia-mail
+    container_name: scheduling-mail
     restart: unless-stopped
     ports:
       - '${MAIL_PORT:-1025}:1025' # SMTP
@@ -39,4 +39,4 @@ services:
       MP_SMTP_AUTH_ALLOW_INSECURE: 'true'
 
 volumes:
-  marginalia_pgdata:
+  scheduling_pgdata:

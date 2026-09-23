@@ -1,7 +1,7 @@
 /**
  * Masks an email for display — `helena@gmail.com` → `h***@gmail.com`
  * (Security spec §5). Pure: used by the API (register / reset response)
- * and by the confirmation screens (web and mobile).
+ * and by the confirmation screens (web).
  */
 export function maskEmail(email: string): string {
   const at = email.lastIndexOf('@');

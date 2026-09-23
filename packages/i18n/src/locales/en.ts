@@ -25,29 +25,23 @@ export const en: Catalog = {
 
   // ── Field-specific validation ───────────────────────────────────────
   'validation.name.tooShort': 'Enter your name',
-  'validation.username.pattern':
-    "Start with a letter; use only letters, numbers, '.' and '_' (no '..' or trailing '.')",
+  'validation.phone.format': 'Enter a phone with area code (11 digits)',
+  'validation.slug.format':
+    'Use 3-60 lowercase letters, numbers and single hyphens',
   'validation.password.minLength': 'Use at least 8 characters',
   'validation.password.uppercase': 'Add an uppercase letter',
   'validation.password.lowercase': 'Add a lowercase letter',
   'validation.password.number': 'Add a number',
-  'validation.otp.length': 'Enter the 6-digit code',
-  'validation.birthDate.future': "Date can't be in the future",
-  'validation.birthDate.minAge': 'You must be at least 18 years old',
-  'validation.genres.duplicate': 'Remove duplicate genres',
-  'validation.terms.required': 'You must accept the Terms and the Privacy Policy',
 
   // ── Domain errors (API) ────────────────────────────────────────────
-  'errors.auth.usernameTaken': 'Username already in use',
   'errors.auth.emailTaken': 'Email already registered',
-  'errors.auth.invalidCredentials': 'Invalid username or password',
-  'errors.auth.accountBlocked':
-    'Account locked. Use "Forgot my password" to unlock it.',
-  'errors.auth.codeInvalidOrExpired': 'Code is incorrect or expired',
-  'errors.auth.codeIncorrect': 'Incorrect code. Attempts left: {remaining}',
-  'errors.auth.registrationNotFound': 'Registration not found',
+  'errors.auth.invalidCredentials': 'Invalid email or password',
+  'errors.auth.forbidden': "You don't have permission to do this",
   'errors.auth.tokenMissing': 'Missing access token',
   'errors.auth.tokenInvalid': 'Invalid or expired token',
+  'errors.tenant.notFound': 'Company not found',
+  'errors.tenant.slugTaken': 'Company address already in use',
+  'errors.member.notFound': 'Employee not found',
   'errors.user.notFound': 'User not found',
   'errors.internal': 'Something went wrong',
   'errors.validationFailed': 'Validation failed',
