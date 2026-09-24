@@ -1,0 +1,77 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.banner {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 500;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1099px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+.balance {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 130px;
+}
+.balanceLabel {
+  font-size: 12px;
+  color: var(--text);
+}
+.balanceTrack {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-3);
+}
+.balanceFill {
+  height: 100%;
+  border-radius: 2px;
+}
+.balanceMarker {
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 10px;
+  background: var(--text);
+}
+.moveList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.moveRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.moveRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.moveTop {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+.moveDesc {
+  font-size: 13px;
+  color: var(--text);
+}
