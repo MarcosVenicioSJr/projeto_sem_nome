@@ -1,0 +1,210 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.greeting {
+  margin: 0;
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 600;
+  font-stretch: 78%;
+  font-family: var(--font-archivo, sans-serif);
+  color: var(--text);
+}
+.dateLine {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+  gap: 16px;
+}
+
+/* chairs */
+.chairList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chairRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 6px 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.chairInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.chairNameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chairName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.chairState {
+  font-size: 11px;
+  color: var(--muted);
+}
+.chairLine {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chairSub {
+  font-size: 12px;
+  color: var(--muted);
+}
+.progress {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--surface-3);
+  margin-top: 4px;
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  background: var(--accent);
+}
+
+/* alerts */
+.alertList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.alertRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.alertIcon {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.alertBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.alertTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.alertText {
+  font-size: 12px;
+  color: var(--muted);
+}
+.emptyState {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* upcoming */
+.upcomingRow {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.upcomingRow:last-child {
+  border-bottom: none;
+}
+.upcomingTime {
+  font-family: var(--font-archivo, sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.upcomingInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.upcomingClient {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.upcomingSub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* week chart */
+.weekChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 180px;
+}
+.weekBarWrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  height: 100%;
+}
+.weekBar {
+  width: 100%;
+  max-width: 40px;
+  border-radius: 4px 4px 0 0;
+}
+.weekValue {
+  font-size: 10px;
+  color: var(--muted);
+}
+.weekLabel {
+  font-size: 11px;
+  color: var(--muted);
+}
