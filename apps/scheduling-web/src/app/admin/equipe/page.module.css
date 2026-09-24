@@ -1,0 +1,143 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cardName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.cardRole {
+  font-size: 12px;
+  color: var(--muted);
+}
+.cardState {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.metricLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.metricValue {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.scheduleWrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.scheduleTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 720px;
+}
+.scheduleTable th,
+.scheduleTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  white-space: nowrap;
+}
+.scheduleTable th {
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.scheduleTable td:first-child,
+.scheduleTable th:first-child {
+  text-align: left;
+}
+.scheduleTable tr:last-child td {
+  border-bottom: none;
+}
+.off {
+  color: var(--faint);
+}
+
+.comHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.comPeriod {
+  font-size: 13px;
+  color: var(--muted);
+}
+.comTotalLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.comTotalValue {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--font-archivo, sans-serif);
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+.stepBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.stepBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
