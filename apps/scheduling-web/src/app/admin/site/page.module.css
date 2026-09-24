@@ -1,0 +1,159 @@
+.page {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1099px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+}
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.linkCode {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: ui-monospace, monospace;
+}
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.switchList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.switchText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.switchLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.switchDesc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* phone preview */
+.phoneFrame {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  border-radius: 28px;
+  border: 1px solid var(--line-strong);
+  padding: 10px;
+  background: #0a0908;
+}
+.phoneScreen {
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0d0c0a;
+  color: #f1ece2;
+  min-height: 480px;
+}
+.phoneHeader {
+  padding: 20px 16px;
+  text-align: center;
+}
+.phoneShopName {
+  font-family: var(--font-archivo, sans-serif);
+  font-size: 24px;
+  font-weight: 700;
+  font-stretch: 75%;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.phoneAddress {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+.phoneBody {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.phoneSectionTitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+.phoneServiceRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.phonePrice {
+  color: #d4b06a;
+  font-weight: 600;
+}
+.phoneAvatars {
+  display: flex;
+  gap: 8px;
+}
+.phoneAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #26231d;
+  border: 1px solid rgba(212, 176, 106, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+.phoneProduct {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+  opacity: 0.85;
+}
+.phoneCta {
+  margin: 4px 16px 20px;
+  height: 44px;
+  border-radius: 8px;
+  background: #c9a45c;
+  color: #15110a;
+  border: none;
+  font-weight: 600;
+  font-size: 13px;
+}
+.phoneOffline {
+  padding: 40px 16px;
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.7;
+}
