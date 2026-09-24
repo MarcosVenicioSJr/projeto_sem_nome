@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, CardTitle } from '../_components/Card';
+import { Card } from '../_components/Card';
 import { Avatar } from '../_components/Avatar';
 import { Button } from '../_components/Button';
 import { Tabs } from '../_components/Tabs';

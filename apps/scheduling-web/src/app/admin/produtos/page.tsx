@@ -3,7 +3,6 @@
 import { Table, type Column } from '../_components/Table';
 import { useAdminData } from '../_lib/data';
 import { brl } from '../_lib/format';
-import type { Product } from '../_lib/types';
 import styles from './page.module.css';
 
 export default function ProdutosPage() {
