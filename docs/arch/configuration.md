@@ -58,3 +58,27 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 The response language is picked per request from `Accept-Language`
 (`parseAcceptLanguage` in `@org/i18n`), default `en`. Not an env var. See
 [ADR-013](./decisions.md#adr-013--i18n-message-keys--per-locale-catalog).
+
+## Frontend (scheduling-web) — variáveis `NEXT_PUBLIC_*`
+
+O portal administrativo (`apps/scheduling-web/src/app/admin`) não deve ter
+nome, slug ou dados da barbearia fixos no código. Enquanto a API não expõe
+`Tenant`/`Owner` para o front, os valores padrão de `ShopConfig`
+(`admin/_lib/shop.tsx`) vêm destas variáveis de ambiente, lidas em build
+time pelo Next.js (por isso o prefixo `NEXT_PUBLIC_`):
+
+| Var | Default | Descrição |
+|---|---|---|
+| `NEXT_PUBLIC_SHOP_NAME` | `Minha Barbearia` | nome exibido na sidebar, Meu Site e Configurações |
+| `NEXT_PUBLIC_SHOP_SLUG` | `minha-barbearia` | slug usado no link público `/t/:slug` |
+| `NEXT_PUBLIC_SHOP_ADDRESS` | — | endereço da barbearia |
+| `NEXT_PUBLIC_SHOP_PHONE` | — | telefone/WhatsApp |
+| `NEXT_PUBLIC_SHOP_CNPJ` | — | CNPJ |
+| `NEXT_PUBLIC_SHOP_OWNER_NAME` | `Dono da barbearia` | nome do dono (iniciais do avatar, saudação do Dashboard) |
+| `NEXT_PUBLIC_SHOP_OWNER_EMAIL` | `dono@example.com` | e-mail do dono (tela Usuários) |
+| `NEXT_PUBLIC_PUBLIC_BOOKING_URL` | `https://barberadmin.app` | base do link público de agendamento (`{base}/t/{slug}`) |
+
+Essas variáveis não passam pelo `env.schema.ts` do `scheduling-api` — são
+lidas diretamente pelo Next.js no bundle do cliente. Quando a API passar a
+expor o tenant autenticado, `ShopProvider` deve buscar esses dados por HTTP
+em vez de env vars.
