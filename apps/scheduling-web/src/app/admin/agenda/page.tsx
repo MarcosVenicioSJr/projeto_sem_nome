@@ -83,7 +83,6 @@ function AgendaView() {
     });
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const barberParam = searchParams.get('barber');
     if (barberParam && barbers.some((b) => b.id === barberParam)) setMobileBarberId(barberParam);

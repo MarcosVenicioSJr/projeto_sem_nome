@@ -26,6 +26,5 @@ export function useSetHeaderSubtitle(subtitle: string | null) {
   useEffect(() => {
     ctx?.setSubtitle(subtitle);
     return () => ctx?.setSubtitle(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subtitle]);
 }

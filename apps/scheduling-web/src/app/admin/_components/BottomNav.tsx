@@ -9,7 +9,9 @@ import styles from './BottomNav.module.css';
 export function BottomNav({ onMore, moreOpen }: { onMore: () => void; moreOpen: boolean }) {
   const pathname = usePathname();
   const current = moduleForPath(pathname);
-  const items = BOTTOM_NAV_IDS.map((id) => MODULES.find((m) => m.id === id)!);
+  const items = BOTTOM_NAV_IDS.map((id) => MODULES.find((m) => m.id === id)).filter(
+    (m): m is (typeof MODULES)[number] => m != null
+  );
   const moreActive = moreOpen || !!(current && !BOTTOM_NAV_IDS.includes(current.id));
 
   return (
