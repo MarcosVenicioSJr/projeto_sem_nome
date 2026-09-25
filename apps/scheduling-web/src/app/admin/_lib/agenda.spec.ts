@@ -20,7 +20,7 @@ describe('computeFreeSlots', () => {
 
   it('remove slots que colidem com o intervalo do barbeiro', () => {
     const slots = computeFreeSlots(base);
-    expect(slots.some(([s]) => s === 600)).toBe(false);
+    expect(slots.some((s) => s === 600)).toBe(false);
     // um agendamento de 45min iniciando às 10:00 (600) terminaria 10:45,
     // então nenhum slot deve começar entre 555 (10:00-45) exclusive e 630
     expect(slots.every((s) => s + 45 <= 600 || s >= 630)).toBe(true);
