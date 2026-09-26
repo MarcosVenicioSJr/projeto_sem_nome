@@ -12,8 +12,7 @@ type RequestWithUser = { user: AccessTokenPayload };
  * Reads the authenticated user that JwtAuthGuard put on `req.user`.
  *   me(@CurrentUser() user: AccessTokenPayload) {}
  *   me(@CurrentUser('sub') userId: string) {}
- * `field` is limited to the claims every role has; use @TenantId() for the
- * tenant, which clients don't carry.
+ * Use @TenantId() for the caller's tenant.
  */
 export const CurrentUser = createParamDecorator(
   (field: keyof AccessTokenPayload | undefined, context: ExecutionContext) => {
@@ -23,8 +22,8 @@ export const CurrentUser = createParamDecorator(
 );
 
 /**
- * The caller's tenant, for owner/employee routes. A client token has no
- * tenant, so it is refused instead of yielding `undefined` into a query.
+ * The caller's tenant. Every token carries one; a token without it is
+ * refused instead of yielding `undefined` into a query.
  */
 export const TenantId = createParamDecorator(
   (_: unknown, context: ExecutionContext): string => {

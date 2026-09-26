@@ -13,10 +13,10 @@ import { EmployeeIdParamDto } from './dto/employee-id-param.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { MemberService } from './member.service';
 
-/** Employee management. Owner only; the tenant comes from the owner's token. */
+/** Employee management. Owner/manager only; the tenant comes from the owner's token. */
 @Controller('members/employees')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('owner')
+@Roles('owner', 'manager')
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
@@ -40,5 +40,18 @@ export class MemberController {
     @Body() dto: UpdateEmployeeDto,
   ) {
     return this.memberService.updateEmployee(tenantId, id, dto);
+  }
+}
+
+/** The whole team, owner included. Owner/manager only. */
+@Controller('members')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('owner', 'manager')
+export class TeamController {
+  constructor(private readonly memberService: MemberService) {}
+
+  @Get()
+  list(@TenantId() tenantId: string) {
+    return this.memberService.listTeam(tenantId);
   }
 }

@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-/** A company (clinic) using the system. Owner and clients belong to it. */
+/** A company using the system. Its members belong to it. */
 @Entity({ name: 'tenants' })
 export class TenantEntity {
   @PrimaryGeneratedColumn('uuid')

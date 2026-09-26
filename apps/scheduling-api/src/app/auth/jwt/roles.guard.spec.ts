@@ -24,7 +24,7 @@ describe('RolesGuard', () => {
 
   it('allows any authenticated role when no @Roles is set', () => {
     requires(undefined);
-    expect(guard.canActivate(contextFor('client'))).toBe(true);
+    expect(guard.canActivate(contextFor('employee'))).toBe(true);
   });
 
   it('allows a matching role', () => {
@@ -34,9 +34,9 @@ describe('RolesGuard', () => {
 
   it('forbids a non-matching role', () => {
     requires(['owner']);
-    expect(() => guard.canActivate(contextFor('client'))).toThrow();
+    expect(() => guard.canActivate(contextFor('employee'))).toThrow();
     try {
-      guard.canActivate(contextFor('client'));
+      guard.canActivate(contextFor('employee'));
     } catch (e) {
       expect(e).toMatchObject({ key: 'errors.auth.forbidden' });
     }

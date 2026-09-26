@@ -5,7 +5,7 @@ import { UserService } from './user.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 /**
- * The authenticated caller's own profile (owner, employee or client). The
+ * The authenticated caller's own profile (owner, manager or employee). The
  * identity comes from the access token (JwtAuthGuard + @CurrentUser). Account
  * creation lives in AuthController / TenantController / MemberController.
  */
@@ -19,9 +19,9 @@ export class UserController {
     return this.userService.findMe(caller);
   }
 
-  /** Employees cannot edit their own data: every edit goes through the owner. */
+  /** Employees cannot edit their own data: every edit goes through the owner/manager. */
   @Patch('me')
-  @Roles('owner', 'client')
+  @Roles('owner', 'manager')
   updateProfile(
     @CurrentUser() caller: AccessTokenPayload,
     @Body() dto: UpdateProfileDto,
