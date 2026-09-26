@@ -59,26 +59,23 @@ The response language is picked per request from `Accept-Language`
 (`parseAcceptLanguage` in `@org/i18n`), default `en`. Not an env var. See
 [ADR-013](./decisions.md#adr-013--i18n-message-keys--per-locale-catalog).
 
-## Frontend (scheduling-web) — variáveis `NEXT_PUBLIC_*`
+## Frontend (scheduling-web)
 
-O portal administrativo (`apps/scheduling-web/src/app/admin`) não deve ter
-nome, slug ou dados da barbearia fixos no código. Enquanto a API não expõe
-`Tenant`/`Owner` para o front, os valores padrão de `ShopConfig`
-(`admin/_lib/shop.tsx`) vêm destas variáveis de ambiente, lidas em build
-time pelo Next.js (por isso o prefixo `NEXT_PUBLIC_`):
+O portal (`apps/scheduling-web`) fala com a API pelo **próprio Next**: o browser
+chama `/api/...` e `next.config.js` (`rewrites`) repassa para a API — sem CORS.
+Nome, slug e dono da empresa vêm da API (`GET /tenants/me` + `GET /user/me`) pela
+sessão; nada disso é fixo em env vars.
 
 | Var | Default | Descrição |
 |---|---|---|
-| `NEXT_PUBLIC_SHOP_NAME` | `Minha Barbearia` | nome exibido na sidebar, Meu Site e Configurações |
-| `NEXT_PUBLIC_SHOP_SLUG` | `minha-barbearia` | slug usado no link público `/t/:slug` |
-| `NEXT_PUBLIC_SHOP_ADDRESS` | — | endereço da barbearia |
-| `NEXT_PUBLIC_SHOP_PHONE` | — | telefone/WhatsApp |
-| `NEXT_PUBLIC_SHOP_CNPJ` | — | CNPJ |
-| `NEXT_PUBLIC_SHOP_OWNER_NAME` | `Dono da barbearia` | nome do dono (iniciais do avatar, saudação do Dashboard) |
-| `NEXT_PUBLIC_SHOP_OWNER_EMAIL` | `dono@example.com` | e-mail do dono (tela Usuários) |
+| `API_PROXY_TARGET` | `http://localhost:3000` | onde o Next repassa `/api/*` (lida pelo servidor Next, sem prefixo `NEXT_PUBLIC_`) |
 | `NEXT_PUBLIC_PUBLIC_BOOKING_URL` | `https://barberadmin.app` | base do link público de agendamento (`{base}/t/{slug}`) |
 
-Essas variáveis não passam pelo `env.schema.ts` do `scheduling-api` — são
-lidas diretamente pelo Next.js no bundle do cliente. Quando a API passar a
-expor o tenant autenticado, `ShopProvider` deve buscar esses dados por HTTP
-em vez de env vars.
+Dados que ainda não existem na API (endereço, telefone e CNPJ da empresa) ficam só
+no navegador, em `ShopProvider` (`admin/_lib/shop.tsx`).
+
+**Sessão.** O token de acesso (JWT de 15 min, sem refresh) fica em
+`localStorage` (`ba-session`). Ao expirar — ou num 401 — o usuário volta para `/login`.
+
+> `nx build scheduling-web` falha se o shell tiver `NODE_ENV=development` (o `.env`
+> raiz define isso e o Nx o repassa): use `NODE_ENV=production nx build scheduling-web`.

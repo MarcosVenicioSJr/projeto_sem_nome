@@ -403,3 +403,66 @@ member routes scope every query by the token's `tenantId` (an owner can never
 reach another tenant's employee). For a client, the allowed tenants are read from
 `tenant_clients`, never from the token. An email can be both a member and a
 client (separate accounts, separate logins).
+
+## ADR-018 — Barbershop management domain: no client accounts, generic professionals
+
+**Context.** The functional spec ([gestao-barbearia-modulos.md](../specs/gestao-barbearia-modulos.md))
+redefines the product as a management system (agenda, services, finance, stock,
+products, reports). It states that the end customer has no registration/login and
+only gives a name and a phone when booking. The old "book club" specs were
+deleted; ADR-001…ADR-016 keep their historical context but the username/OTP/
+`clubs` auth they describe was already superseded by ADR-017.
+
+**Decision.**
+- **Client accounts removed.** `clients` and `tenant_clients`, `POST /auth/client/*`
+  and `POST /t/:slug/clients/join` are gone; the `client` role no longer exists and
+  every token carries a `tenantId`. An appointment stores `client_name` /
+  `client_phone` directly.
+- **Generic "professional".** The API says *professional*, not barber, because the
+  system serves other kinds of services. Any `members` row can provide services
+  (a solo owner too). Tables: `professional_services` (price and duration per
+  professional and service), `professional_schedules` (weekly hours; no row =
+  day off), `professional_time_off` (blocks on a date).
+- **New role `manager`**, same permissions as `owner` for now (`@Roles('owner',
+  'manager')`); an `employee` acts only on their own agenda/services/schedule.
+  `POST /members/employees` accepts `role: 'employee' | 'manager'`.
+- **Services** are just a name; price/duration are per professional. An
+  appointment freezes them per service (`appointment_services`) so later price
+  edits do not rewrite history; its duration is the sum of its services.
+- **Booking rules** (`agenda/availability.ts`, pure and unit-tested): 1 h minimum
+  notice; slots = weekly hours − break − time off − active bookings (every 15 min
+  inside each free interval); per phone, max 2 bookings a day, only back to back
+  with the same professional — a 3rd is always refused; the client cancels through
+  a secret `cancel_token` link until 2 h before; reschedule = cancel + rebook.
+  Confirmation is automatic (`confirmed`); statuses are `confirmed|done|cancelled`.
+  A no-show is cancelled manually at the counter.
+- **Finance is a manual record** (no gateway). Completing an appointment
+  (`PATCH /agenda/:id/done`, amount + payment method) creates its single
+  `revenue_entries` row. Commission is a **daily closing** (not real time):
+  every non-cancelled service of the day per professional × `members.commission_rate`;
+  it only shows what is owed, not whether it was paid. Expenses are manual.
+  Reports are monthly only (revenue of done appointments; distinct phones with a
+  done appointment).
+- **Stock** = internal consumables only (name, quantity, unit, minimum; `lowStock`
+  computed; adjusted manually, no link to appointments). **Products** (for sale)
+  came back to scope with their own quantity, independent of stock.
+- **Time zone.** Weekly hours are local minutes; `common/tenant-time.ts` fixes the
+  tenant offset at UTC-3. A per-tenant time zone would replace that constant.
+- Migrations must stay LF: `.gitattributes` forces `eol=lf` on the migrations
+  folder, otherwise `atlas.sum` fails on Windows checkouts (CRLF).
+
+**Web integration.** The portal now has `/login` and `/cadastro` (onboarding),
+a client-side session (`_lib/session.tsx`, token in `localStorage`, no refresh) and
+an `AuthGate` on `/admin`. The browser calls `/api/...` on the Next server, which
+proxies to the API (`rewrites`, no CORS). `AdminDataProvider` loads the team,
+catalog, offers, schedules, stock and products from the API; Agenda, Financeiro
+and Relatórios fetch their own data. Staff bookings use `POST /agenda/appointments`
+and `GET /agenda/slots` (no 1 h notice, no phone limit — those protect against the
+public). Rescheduling in the UI = create the new booking, then cancel the old one.
+Booking times are converted with the browser's time zone, which must match the
+tenant's (UTC-3 today).
+
+**Consequences.** Dashboard, Configurações and Meu Site still run on mock data (no
+detailed rules in the spec). Sending the cancellation link over WhatsApp/SMS is not
+built (the API only returns the link). Fine-grained `manager` permissions and the
+Clientes module wait for their own specs.

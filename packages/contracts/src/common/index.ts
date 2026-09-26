@@ -4,3 +4,4 @@ export * from './email.schema.js';
 export * from './password.schema.js';
 export * from './phone.schema.js';
 export * from './pagination.schema.js';
+export * from './date.schema.js';
