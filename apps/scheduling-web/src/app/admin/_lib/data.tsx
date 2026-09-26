@@ -1,37 +1,109 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
-import {
-  APPOINTMENTS,
-  BARBERS,
-  DEFAULT_HOURS,
-  INITIAL_COMMISSION_PCT,
-  PRODUCTS,
-  SERVICES,
-  STOCK,
-  STOCK_MOVEMENTS,
-} from './mock-data';
-import type { Appointment, AppointmentStatus, Barber, Product, Service, ShopHours, StockItem, StockMovement } from './types';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type {
+  Appointment as ApiAppointment,
+  CreateProductInput,
+  CreateStockItemInput,
+  Member,
+  PaymentMethod,
+  Product as ApiProduct,
+  ProfessionalService,
+  ScheduleDay,
+  Service as CatalogService,
+  StockItem as ApiStockItem,
+  UpdateProductInput,
+} from '@org/contracts';
+import { useSession } from '../../_lib/session';
+import { initials } from './format';
+import { DEFAULT_HOURS } from './mock-data';
+import type { Appointment, Barber, Product, Service, ShopHours, StockItem } from './types';
+
+export type TeamMember = Member;
+export type NewMemberInput = {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: 'employee' | 'manager';
+  commissionRate: number | null;
+};
 
 export type SiteSettings = { online: boolean; precos: boolean; escolher: boolean; produtos: boolean };
 export type SchedulingRules = { whatsappReminder: boolean; minLeadMinutes: number; horizonDays: number };
 
 type NewAppointmentInput = {
   clientName: string;
-  clientPhone?: string;
+  clientPhone: string;
   serviceId: string;
   barberId: string;
+  /** minutos desde 00:00 */
   start: number;
+  /** deslocamento em dias a partir de hoje */
   date: number;
 };
 
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+/** Dia (deslocamento a partir de hoje) -> `YYYY-MM-DD` no fuso do navegador. */
+function isoDay(offset: number): string {
+  const d = startOfDay(new Date());
+  d.setDate(d.getDate() + offset);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Dia + minutos desde 00:00 -> instante (ISO). */
+function instantAt(offset: number, minutes: number): string {
+  const d = startOfDay(new Date());
+  d.setDate(d.getDate() + offset);
+  d.setMinutes(minutes);
+  return d.toISOString();
+}
+
+/** Agendamento da API -> formato usado pelas telas (dia em deslocamento, hora em minutos). */
+function fromApi(a: ApiAppointment): Appointment {
+  const start = new Date(a.startAt);
+  const end = new Date(a.endAt);
+  return {
+    id: a.id,
+    date: Math.round((startOfDay(start).getTime() - startOfDay(new Date()).getTime()) / 86_400_000),
+    barberId: a.professionalId,
+    clientName: a.clientName,
+    clientPhone: a.clientPhone,
+    serviceId: a.services[0]?.serviceId ?? '',
+    start: start.getHours() * 60 + start.getMinutes(),
+    status: a.status === 'done' ? 'done' : 'confirmed',
+    durationMinutes: Math.round((end.getTime() - start.getTime()) / 60_000),
+    price: a.services.reduce((sum, s) => sum + s.price, 0),
+  };
+}
+
 type AdminDataValue = {
+  /** carregando a equipe/catálogo da API */
+  loading: boolean;
+  loadError: string | null;
+  /** equipe real (dono, gerentes e profissionais) */
+  team: TeamMember[];
+  /** catálogo real de serviços (só nome) */
+  catalog: CatalogService[];
+  /** preço/duração de cada profissional por serviço */
+  offers: ProfessionalService[];
+  /** jornada semanal de cada profissional, por id */
+  schedules: Record<string, ScheduleDay[]>;
+  /**
+   * Visões derivadas no formato antigo (Barber/Service), para as telas ainda
+   * não integradas (Agenda, Dashboard, Financeiro...). Saem quando elas forem.
+   */
   barbers: Barber[];
   services: Service[];
   appointments: Appointment[];
+  /** consumíveis internos (API) */
+  stockItems: ApiStockItem[];
+  /** produtos à venda (API) */
+  productItems: ApiProduct[];
+  /** visões no formato antigo, para Dashboard e Meu Site */
   products: Product[];
   stock: StockItem[];
-  stockMovements: StockMovement[];
   commissionPct: Record<string, number>;
   commissionPaid: Record<string, boolean>;
   remindersSent: boolean;
@@ -47,16 +119,30 @@ type AdminDataValue = {
   showToast: (message: string) => void;
   dismissToast: () => void;
 
-  createAppointment: (input: NewAppointmentInput, rescheduleId?: string) => Appointment;
-  setAppointmentStatus: (id: string, status: AppointmentStatus) => void;
+  /** carrega (da API) os agendamentos de um dia */
+  loadDay: (dateOffset: number) => Promise<void>;
+  /** horários livres (minutos desde 00:00) do profissional/serviço no dia, sem a regra de 1h de antecedência */
+  fetchSlots: (barberId: string, serviceId: string, dateOffset: number) => Promise<number[]>;
+  createAppointment: (input: NewAppointmentInput, rescheduleId?: string) => Promise<void>;
+  completeAppointment: (id: string, amount: number, paymentMethod: PaymentMethod) => Promise<void>;
+  cancelAppointment: (id: string) => Promise<void>;
   sendPendingReminders: () => void;
 
-  toggleServiceActive: (id: string) => void;
-  createService: (input: Omit<Service, 'id' | 'active'>) => void;
+  createService: (name: string) => Promise<void>;
+  removeService: (id: string) => Promise<void>;
+  saveOffer: (professionalId: string, serviceId: string, price: number, durationMinutes: number) => Promise<void>;
+  removeOffer: (professionalId: string, serviceId: string) => Promise<void>;
+  createMember: (input: NewMemberInput) => Promise<void>;
+  saveSchedule: (professionalId: string, days: ScheduleDay[]) => Promise<void>;
 
-  registerStockEntry: (id: string) => void;
+  createStockItem: (input: CreateStockItemInput) => Promise<void>;
+  adjustStock: (id: string, delta: number) => Promise<void>;
+  removeStockItem: (id: string) => Promise<void>;
+  createProduct: (input: CreateProductInput) => Promise<void>;
+  updateProduct: (id: string, patch: UpdateProductInput) => Promise<void>;
+  removeProduct: (id: string) => Promise<void>;
 
-  setCommissionPct: (barberId: string, pct: number) => void;
+  setCommissionPct: (memberId: string, pct: number) => void;
   payCommission: (barberId: string) => void;
 
   closeCash: () => void;
@@ -73,11 +159,16 @@ type AdminDataValue = {
 const AdminDataContext = createContext<AdminDataValue | null>(null);
 
 export function AdminDataProvider({ children }: { children: ReactNode }) {
-  const [appointments, setAppointments] = useState<Appointment[]>(APPOINTMENTS);
-  const [services, setServices] = useState<Service[]>(SERVICES);
-  const [stock, setStock] = useState<StockItem[]>(STOCK);
-  const [stockMovements, setStockMovements] = useState<StockMovement[]>(STOCK_MOVEMENTS);
-  const [commissionPct, setCommissionPctState] = useState<Record<string, number>>(INITIAL_COMMISSION_PCT);
+  const { api, me, isManagement } = useSession();
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [catalog, setCatalog] = useState<CatalogService[]>([]);
+  const [offers, setOffers] = useState<ProfessionalService[]>([]);
+  const [schedules, setSchedules] = useState<Record<string, ScheduleDay[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [stockItems, setStockItems] = useState<ApiStockItem[]>([]);
+  const [productItems, setProductItems] = useState<ApiProduct[]>([]);
   const [commissionPaid, setCommissionPaid] = useState<Record<string, boolean>>({});
   const [remindersSent, setRemindersSent] = useState(false);
   const [cashClosedAt, setCashClosedAt] = useState<string | null>(null);
@@ -94,57 +185,254 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   }, []);
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
-  const getBarber = useCallback((id: string) => BARBERS.find((b) => b.id === id), []);
-  const getService = useCallback((id: string) => services.find((s) => s.id === id), [services]);
+  const load = useCallback(async () => {
+    if (!me) return;
+    try {
+      const members = isManagement ? await api<TeamMember[]>('/members') : [me];
+      const [catalogRows, allOffers, weeks, stockRows, productRows] = await Promise.all([
+        api<CatalogService[]>('/services'),
+        isManagement ? api<ProfessionalService[]>('/services/offers') : api<ProfessionalService[]>(`/members/${me.id}/services`),
+        Promise.all(members.map((m) => api<ScheduleDay[]>(`/members/${m.id}/schedule`))),
+        api<ApiStockItem[]>('/stock-items'),
+        isManagement ? api<ApiProduct[]>('/products') : Promise.resolve([] as ApiProduct[]),
+      ]);
+      setStockItems(stockRows);
+      setProductItems(productRows);
+      setTeam(members);
+      setCatalog(catalogRows);
+      setOffers(allOffers);
+      setSchedules(Object.fromEntries(members.map((m, i) => [m.id, weeks[i]])));
+      setLoadError(null);
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : 'Não foi possível carregar os dados.');
+    } finally {
+      setLoading(false);
+    }
+  }, [api, me, isManagement]);
 
-  const createAppointment = useCallback(
-    (input: NewAppointmentInput, rescheduleId?: string): Appointment => {
-      const appt: Appointment = {
-        id: 'n' + Date.now(),
-        date: input.date,
-        barberId: input.barberId,
-        clientName: input.clientName.trim(),
-        clientPhone: input.clientPhone?.trim() || undefined,
-        serviceId: input.serviceId,
-        start: input.start,
-        status: 'confirmed',
-      };
-      setAppointments((prev) => [...prev.filter((a) => a.id !== rescheduleId), appt]);
-      return appt;
-    },
-    [],
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const barbers = useMemo<Barber[]>(
+    () => team.map((m) => toBarber(m, schedules[m.id] ?? [])),
+    [team, schedules],
+  );
+  const services = useMemo<Service[]>(
+    () =>
+      catalog.map((c) => {
+        const offer = offers.find((o) => o.serviceId === c.id);
+        return {
+          id: c.id,
+          name: c.name,
+          category: 'Outros' as const,
+          duration: offer?.durationMinutes ?? 30,
+          price: offer?.price ?? 0,
+          active: offers.some((o) => o.serviceId === c.id),
+        };
+      }),
+    [catalog, offers],
+  );
+  const stock = useMemo<StockItem[]>(
+    () => stockItems.map((i) => ({ id: i.id, name: i.name, kind: 'Insumo' as const, qty: i.quantity, min: i.minQuantity, unit: i.unit, lot: 1 })),
+    [stockItems],
+  );
+  const products = useMemo<Product[]>(
+    () => productItems.map((p) => ({ id: p.id, name: p.name, category: p.category ?? '—', price: p.price, cost: p.cost, stockId: '' })),
+    [productItems],
+  );
+  const commissionPct = useMemo<Record<string, number>>(
+    () => Object.fromEntries(team.map((m) => [m.id, m.role === 'employee' ? (m.commissionRate ?? 0) : 0])),
+    [team],
   );
 
-  const setAppointmentStatus = useCallback((id: string, status: AppointmentStatus) => {
-    setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
-  }, []);
+  const getBarber = useCallback((id: string) => barbers.find((b) => b.id === id), [barbers]);
+  const getService = useCallback((id: string) => services.find((s) => s.id === id), [services]);
+
+  const loadDay = useCallback(
+    async (dateOffset: number) => {
+      const rows = await api<ApiAppointment[]>(`/agenda?date=${isoDay(dateOffset)}`);
+      const day = rows.filter((r) => r.status !== 'cancelled').map(fromApi);
+      setAppointments((prev) => [...prev.filter((a) => a.date !== dateOffset), ...day]);
+    },
+    [api],
+  );
+
+  // a agenda de hoje alimenta o Dashboard; as demais telas pedem o dia que exibem
+  useEffect(() => {
+    if (me) void loadDay(0).catch(() => undefined);
+  }, [me, loadDay]);
+
+  const fetchSlots = useCallback(
+    async (barberId: string, serviceId: string, dateOffset: number) => {
+      const query = new URLSearchParams({ professionalId: barberId, serviceIds: serviceId, date: isoDay(dateOffset) });
+      const starts = await api<string[]>(`/agenda/slots?${query.toString()}`);
+      return starts.map((iso) => {
+        const d = new Date(iso);
+        return d.getHours() * 60 + d.getMinutes();
+      });
+    },
+    [api],
+  );
+
+  const createAppointment = useCallback(
+    async (input: NewAppointmentInput, rescheduleId?: string) => {
+      await api('/agenda/appointments', {
+        method: 'POST',
+        body: {
+          professionalId: input.barberId,
+          serviceIds: [input.serviceId],
+          clientName: input.clientName.trim(),
+          clientPhone: input.clientPhone,
+          startAt: instantAt(input.date, input.start),
+        },
+      });
+      // remarcar = criar o novo e só então cancelar o antigo (nunca perde o horário)
+      if (rescheduleId) {
+        const old = appointments.find((a) => a.id === rescheduleId);
+        await api(`/agenda/${rescheduleId}/cancel`, { method: 'PATCH', body: {} });
+        if (old && old.date !== input.date) await loadDay(old.date);
+      }
+      await loadDay(input.date);
+    },
+    [api, appointments, loadDay],
+  );
+
+  const completeAppointment = useCallback(
+    async (id: string, amount: number, paymentMethod: PaymentMethod) => {
+      const target = appointments.find((a) => a.id === id);
+      await api(`/agenda/${id}/done`, { method: 'PATCH', body: { amount, paymentMethod } });
+      if (target) await loadDay(target.date);
+    },
+    [api, appointments, loadDay],
+  );
+
+  const cancelAppointment = useCallback(
+    async (id: string) => {
+      const target = appointments.find((a) => a.id === id);
+      await api(`/agenda/${id}/cancel`, { method: 'PATCH', body: {} });
+      if (target) await loadDay(target.date);
+    },
+    [api, appointments, loadDay],
+  );
 
   const sendPendingReminders = useCallback(() => setRemindersSent(true), []);
 
-  const toggleServiceActive = useCallback((id: string) => {
-    setServices((prev) => prev.map((s) => (s.id === id ? { ...s, active: !s.active } : s)));
-  }, []);
-
-  const createService = useCallback((input: Omit<Service, 'id' | 'active'>) => {
-    setServices((prev) => [...prev, { ...input, id: 's' + Date.now(), active: true }]);
-  }, []);
-
-  const registerStockEntry = useCallback(
-    (id: string) => {
-      const item = stock.find((s) => s.id === id);
-      if (!item) return;
-      setStock((prev) => prev.map((s) => (s.id === id ? { ...s, qty: s.qty + s.lot } : s)));
-      setStockMovements((prev) => [
-        { id: 'm' + Date.now(), time: 'Agora', description: 'Entrada · ' + item.name, qty: '+' + item.lot + ' ' + item.unit },
-        ...prev,
-      ]);
+  const createService = useCallback(
+    async (name: string) => {
+      const created = await api<CatalogService>('/services', { method: 'POST', body: { name } });
+      setCatalog((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
     },
-    [stock],
+    [api],
   );
 
-  const setCommissionPct = useCallback((barberId: string, pct: number) => {
-    setCommissionPctState((prev) => ({ ...prev, [barberId]: Math.max(0, Math.min(80, pct)) }));
-  }, []);
+  const removeService = useCallback(
+    async (id: string) => {
+      await api<void>(`/services/${id}`, { method: 'DELETE' });
+      setCatalog((prev) => prev.filter((s) => s.id !== id));
+      setOffers((prev) => prev.filter((o) => o.serviceId !== id));
+    },
+    [api],
+  );
+
+  const saveOffer = useCallback(
+    async (professionalId: string, serviceId: string, price: number, durationMinutes: number) => {
+      const saved = await api<ProfessionalService>(`/members/${professionalId}/services`, {
+        method: 'PUT',
+        body: { serviceId, price, durationMinutes },
+      });
+      setOffers((prev) => [...prev.filter((o) => !(o.professionalId === professionalId && o.serviceId === serviceId)), saved]);
+    },
+    [api],
+  );
+
+  const removeOffer = useCallback(
+    async (professionalId: string, serviceId: string) => {
+      await api<void>(`/members/${professionalId}/services/${serviceId}`, { method: 'DELETE' });
+      setOffers((prev) => prev.filter((o) => !(o.professionalId === professionalId && o.serviceId === serviceId)));
+    },
+    [api],
+  );
+
+  const createMember = useCallback(
+    async (input: NewMemberInput) => {
+      const created = await api<TeamMember>('/members/employees', { method: 'POST', body: input });
+      setTeam((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+      setSchedules((prev) => ({ ...prev, [created.id]: [] }));
+    },
+    [api],
+  );
+
+  const saveSchedule = useCallback(
+    async (professionalId: string, days: ScheduleDay[]) => {
+      const saved = await api<ScheduleDay[]>(`/members/${professionalId}/schedule`, { method: 'PUT', body: { days } });
+      setSchedules((prev) => ({ ...prev, [professionalId]: saved }));
+    },
+    [api],
+  );
+
+  const sortByName = <T extends { name: string }>(rows: T[]) => [...rows].sort((a, b) => a.name.localeCompare(b.name));
+
+  const createStockItem = useCallback(
+    async (input: CreateStockItemInput) => {
+      const created = await api<ApiStockItem>('/stock-items', { method: 'POST', body: input });
+      setStockItems((prev) => sortByName([...prev, created]));
+    },
+    [api],
+  );
+
+  const adjustStock = useCallback(
+    async (id: string, delta: number) => {
+      const updated = await api<ApiStockItem>(`/stock-items/${id}/quantity`, { method: 'PATCH', body: { delta } });
+      setStockItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
+    },
+    [api],
+  );
+
+  const removeStockItem = useCallback(
+    async (id: string) => {
+      await api<void>(`/stock-items/${id}`, { method: 'DELETE' });
+      setStockItems((prev) => prev.filter((i) => i.id !== id));
+    },
+    [api],
+  );
+
+  const createProduct = useCallback(
+    async (input: CreateProductInput) => {
+      const created = await api<ApiProduct>('/products', { method: 'POST', body: input });
+      setProductItems((prev) => sortByName([...prev, created]));
+    },
+    [api],
+  );
+
+  const updateProduct = useCallback(
+    async (id: string, patch: UpdateProductInput) => {
+      const updated = await api<ApiProduct>(`/products/${id}`, { method: 'PATCH', body: patch });
+      setProductItems((prev) => prev.map((p) => (p.id === id ? updated : p)));
+    },
+    [api],
+  );
+
+  const removeProduct = useCallback(
+    async (id: string) => {
+      await api<void>(`/products/${id}`, { method: 'DELETE' });
+      setProductItems((prev) => prev.filter((p) => p.id !== id));
+    },
+    [api],
+  );
+
+  const setCommissionPct = useCallback(
+    (memberId: string, pct: number) => {
+      const rate = Math.max(0, Math.min(80, pct));
+      const previous = team;
+      setTeam((prev) => prev.map((m) => (m.id === memberId && m.role === 'employee' ? { ...m, commissionRate: rate } : m)));
+      api<TeamMember>(`/members/employees/${memberId}`, { method: 'PATCH', body: { commissionRate: rate } }).catch(() => {
+        setTeam(previous);
+        showToast('Não foi possível salvar a comissão');
+      });
+    },
+    [api, team, showToast],
+  );
 
   const payCommission = useCallback((barberId: string) => {
     setCommissionPaid((prev) => ({ ...prev, [barberId]: true }));
@@ -178,12 +466,19 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AdminDataValue>(
     () => ({
-      barbers: BARBERS,
+      loading,
+      loadError,
+      team,
+      catalog,
+      offers,
+      schedules,
+      barbers,
       services,
       appointments,
-      products: PRODUCTS,
+      stockItems,
+      productItems,
+      products,
       stock,
-      stockMovements,
       commissionPct,
       commissionPaid,
       remindersSent,
@@ -196,12 +491,24 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       getService,
       showToast,
       dismissToast,
+      loadDay,
+      fetchSlots,
       createAppointment,
-      setAppointmentStatus,
+      completeAppointment,
+      cancelAppointment,
       sendPendingReminders,
-      toggleServiceActive,
       createService,
-      registerStockEntry,
+      removeService,
+      saveOffer,
+      removeOffer,
+      createMember,
+      saveSchedule,
+      createStockItem,
+      adjustStock,
+      removeStockItem,
+      createProduct,
+      updateProduct,
+      removeProduct,
       setCommissionPct,
       payCommission,
       closeCash,
@@ -213,10 +520,19 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       updateHourRange,
     }),
     [
+      loading,
+      loadError,
+      team,
+      catalog,
+      offers,
+      schedules,
+      barbers,
       services,
       appointments,
+      stockItems,
+      productItems,
+      products,
       stock,
-      stockMovements,
       commissionPct,
       commissionPaid,
       remindersSent,
@@ -229,12 +545,24 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       getService,
       showToast,
       dismissToast,
+      loadDay,
+      fetchSlots,
       createAppointment,
-      setAppointmentStatus,
+      completeAppointment,
+      cancelAppointment,
       sendPendingReminders,
-      toggleServiceActive,
       createService,
-      registerStockEntry,
+      removeService,
+      saveOffer,
+      removeOffer,
+      createMember,
+      saveSchedule,
+      createStockItem,
+      adjustStock,
+      removeStockItem,
+      createProduct,
+      updateProduct,
+      removeProduct,
       setCommissionPct,
       payCommission,
       closeCash,
@@ -254,4 +582,28 @@ export function useAdminData(): AdminDataValue {
   const ctx = useContext(AdminDataContext);
   if (!ctx) throw new Error('useAdminData deve ser usado dentro de <AdminDataProvider>');
   return ctx;
+}
+
+const ROLE_TEXT = { owner: 'Dono', manager: 'Gerente', employee: 'Profissional' } as const;
+
+/** Visão antiga (Barber) de um membro da equipe, para as telas ainda não integradas. */
+function toBarber(member: TeamMember, week: ScheduleDay[]): Barber {
+  const worked = week.map((d) => d.weekday);
+  const first = week[0];
+  const withBreak = week.find((d) => d.breakStartMinute != null && d.breakEndMinute != null);
+  const names = member.name.trim().split(/\s+/);
+  return {
+    id: member.id,
+    name: member.name,
+    short: names[0] ?? member.name,
+    initials: initials(member.name),
+    role: ROLE_TEXT[member.role],
+    start: week.length ? Math.min(...week.map((d) => d.startMinute)) : (first?.startMinute ?? 540),
+    end: week.length ? Math.max(...week.map((d) => d.endMinute)) : (first?.endMinute ?? 1080),
+    brk: [withBreak?.breakStartMinute ?? 0, withBreak?.breakEndMinute ?? 0],
+    off: ([0, 1, 2, 3, 4, 5, 6] as const).filter((d) => !worked.includes(d)),
+    revenue: 0,
+    email: member.email,
+    since: new Date(member.createdAt).getFullYear(),
+  };
 }

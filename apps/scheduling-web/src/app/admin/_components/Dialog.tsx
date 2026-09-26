@@ -19,16 +19,20 @@ export function Dialog({
   maxWidth?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  // `onClose` costuma ser uma arrow nova a cada render do pai; guardá-la numa
+  // ref evita refazer o efeito (e roubar o foco dos campos) a cada tecla.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
     ref.current?.focus();
     return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

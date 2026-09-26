@@ -19,7 +19,7 @@ export function decorateAppointment(
   const service = services.find((s) => s.id === appt.serviceId);
   const barber = barbers.find((b) => b.id === appt.barberId);
   if (!service || !barber) return null;
-  const end = appt.start + service.duration;
+  const end = appt.start + (appt.durationMinutes ?? service.duration);
   return {
     ...appt,
     service,
@@ -27,7 +27,7 @@ export function decorateAppointment(
     end,
     timeLabel: hm(appt.start),
     timeRangeLabel: `${hm(appt.start)}–${hm(end)}`,
-    priceLabel: brl(service.price),
+    priceLabel: brl(appt.price ?? service.price),
   };
 }
 
@@ -58,7 +58,7 @@ export function barberLiveState(barber: Barber, todayAppts: DecoratedAppointment
 
 /** Ocupação do dia (%) de um barbeiro, a partir dos agendamentos do dia. */
 export function barberOccupancyPct(barber: Barber, dayAppts: DecoratedAppointment[]): number {
-  const booked = dayAppts.filter((a) => a.barberId === barber.id).reduce((sum, a) => sum + a.service.duration, 0);
+  const booked = dayAppts.filter((a) => a.barberId === barber.id).reduce((sum, a) => sum + (a.end - a.start), 0);
   const work = barber.end - barber.start - (barber.brk[1] - barber.brk[0]);
   return work > 0 ? Math.round((booked / work) * 100) : 0;
 }

@@ -1,4 +1,5 @@
 import { Archivo, Hanken_Grotesk } from 'next/font/google';
+import { SessionProvider } from './_lib/session';
 import './global.css';
 
 const archivo = Archivo({
@@ -23,7 +24,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${archivo.variable} ${hankenGrotesk.variable}`}>
-      <body>{children}</body>
+      <body>
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   );
 }

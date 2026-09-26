@@ -15,9 +15,9 @@ import { useNow } from '../_lib/use-now';
 import { useViewport } from '../_lib/viewport';
 import { useSetHeaderSubtitle } from '../_lib/page-header';
 import { decorateAll, type DecoratedAppointment } from '../_lib/selectors';
-import { freeSlotsForDay } from '../_lib/agenda';
 import { brl, dateForOffset, ddmm, firstName, hm, longDayLabel, nowMinutes, shortDayLabel, WEEKDAYS_SHORT } from '../_lib/format';
 import type { Barber } from '../_lib/types';
+import type { PaymentMethod } from '@org/contracts';
 import styles from './page.module.css';
 
 const DAY_START = 480; // 08:00
@@ -48,7 +48,8 @@ export default function AgendaPage() {
 }
 
 function AgendaView() {
-  const { barbers, services, appointments, hours, createAppointment, setAppointmentStatus, showToast } = useAdminData();
+  const { barbers, services, catalog, offers, appointments, loadDay, fetchSlots, createAppointment, completeAppointment, cancelAppointment, showToast } =
+    useAdminData();
   const { isMobile } = useViewport();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -58,15 +59,29 @@ function AgendaView() {
   const [mobileBarberId, setMobileBarberId] = useState<string | undefined>(barbers[0]?.id);
   const [drawerId, setDrawerId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState | null>(null);
+  const [dialogSlots, setDialogSlots] = useState<number[]>([]);
+  const [completeFor, setCompleteFor] = useState<DecoratedAppointment | null>(null);
+  const [payment, setPayment] = useState<{ amount: string; method: PaymentMethod }>({ amount: '', method: 'pix' });
+  const [busy, setBusy] = useState(false);
 
   useSetHeaderSubtitle(shortDayLabel(dateOffset));
+
+  useEffect(() => {
+    void loadDay(dateOffset).catch((e) => showToast(e instanceof Error ? e.message : 'Não foi possível carregar a agenda'));
+  }, [dateOffset, loadDay, showToast]);
+
+  /** Serviços que o profissional faz (com o preço/duração dele). */
+  const offersOf = (barberId: string) =>
+    offers
+      .filter((o) => o.professionalId === barberId)
+      .map((o) => ({ serviceId: o.serviceId, name: catalog.find((c) => c.id === o.serviceId)?.name ?? '—', duration: o.durationMinutes, price: o.price }));
 
   const decorated = useMemo(() => decorateAll(appointments, services, barbers), [appointments, services, barbers]);
 
   function openNewDialog(opts: { barberId?: string; start?: number; dateOffset?: number }) {
     const barberId = opts.barberId ?? mobileBarberId ?? barbers[0]?.id;
     const offset = opts.dateOffset ?? dateOffset;
-    const serviceId = services.find((s) => s.active)?.id ?? services[0]?.id ?? '';
+    const serviceId = offersOf(barberId ?? '')[0]?.serviceId ?? '';
     setDialog({ clientName: '', clientPhone: '', serviceId, barberId: barberId ?? '', dateOffset: offset, start: opts.start ?? null });
   }
 
@@ -97,48 +112,88 @@ function AgendaView() {
   const isToday = dateOffset === 0;
   const nowMin = nowMinutes(now);
   const dayAppointments = decorated.filter((a) => a.date === dateOffset);
-  const dayIsOpen = hours.find((h) => h.day === weekday)?.open ?? true;
+  const dayIsOpen = barbers.length === 0 || barbers.some((b) => !(b.off as number[]).includes(weekday));
 
   const visibleBarbers = isMobile ? barbers.filter((b) => b.id === mobileBarberId) : barbers;
 
   const dialogBarber = dialog ? barbers.find((b) => b.id === dialog.barberId) : undefined;
-  const dialogService = dialog ? services.find((s) => s.id === dialog.serviceId) : undefined;
+  const dialogService = dialog ? offersOf(dialog.barberId).find((o) => o.serviceId === dialog.serviceId) : undefined;
 
-  const dialogSlots = useMemo(() => {
-    if (!dialog || !dialogBarber || !dialogService) return [];
-    const existing = decorated
-      .filter((a) => a.barberId === dialog.barberId && a.date === dialog.dateOffset && a.id !== dialog.rescheduleId)
-      .map((a) => ({ id: a.id, start: a.start, duration: a.service.duration }));
-    return freeSlotsForDay({
-      barber: dialogBarber,
-      existingAppointments: existing,
-      duration: dialogService.duration,
-      dateOffset: dialog.dateOffset,
-      skipAppointmentId: dialog.rescheduleId,
-      now,
-    });
-  }, [dialog, dialogBarber, dialogService, decorated, now]);
+  // horários livres vêm da API (jornada − folgas − agendamentos)
+  const slotKey = dialog && dialog.serviceId ? `${dialog.barberId}|${dialog.serviceId}|${dialog.dateOffset}` : null;
+  useEffect(() => {
+    if (!slotKey) {
+      setDialogSlots([]);
+      return;
+    }
+    const [barberId, serviceId, offset] = slotKey.split('|');
+    let cancelled = false;
+    fetchSlots(barberId, serviceId, Number(offset))
+      .then((slots) => !cancelled && setDialogSlots(slots))
+      .catch(() => !cancelled && setDialogSlots([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [slotKey, fetchSlots]);
 
   const effectiveStart = dialog?.start != null && dialogSlots.includes(dialog.start) ? dialog.start : (dialogSlots[0] ?? null);
-  const canSave = !!dialog && dialog.clientName.trim().length > 0 && effectiveStart != null;
+  const canSave = !!dialog && dialog.clientName.trim().length >= 2 && dialog.clientPhone.length === 11 && effectiveStart != null && !busy;
 
-  function handleSave() {
+  async function handleSave() {
     if (!dialog || effectiveStart == null || !dialog.clientName.trim() || !dialogBarber) return;
-    createAppointment(
-      {
-        clientName: dialog.clientName,
-        clientPhone: dialog.clientPhone || undefined,
-        serviceId: dialog.serviceId,
-        barberId: dialog.barberId,
-        start: effectiveStart,
-        date: dialog.dateOffset,
-      },
-      dialog.rescheduleId,
-    );
-    showToast(
-      `${dialog.rescheduleId ? 'Remarcado' : 'Agendado'}: ${firstName(dialog.clientName)} às ${hm(effectiveStart)} com ${dialogBarber.short}`,
-    );
-    setDialog(null);
+    setBusy(true);
+    try {
+      await createAppointment(
+        {
+          clientName: dialog.clientName,
+          clientPhone: dialog.clientPhone,
+          serviceId: dialog.serviceId,
+          barberId: dialog.barberId,
+          start: effectiveStart,
+          date: dialog.dateOffset,
+        },
+        dialog.rescheduleId,
+      );
+      showToast(
+        `${dialog.rescheduleId ? 'Remarcado' : 'Agendado'}: ${firstName(dialog.clientName)} às ${hm(effectiveStart)} com ${dialogBarber.short}`,
+      );
+      setDialog(null);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Não foi possível agendar');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function openComplete(appt: DecoratedAppointment) {
+    setDrawerId(null);
+    setPayment({ amount: String(appt.price ?? appt.service.price), method: 'pix' });
+    setCompleteFor(appt);
+  }
+
+  async function handleComplete() {
+    if (!completeFor) return;
+    setBusy(true);
+    try {
+      await completeAppointment(completeFor.id, Number(payment.amount), payment.method);
+      showToast(`Atendimento de ${firstName(completeFor.clientName)} concluído`);
+      setCompleteFor(null);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Não foi possível concluir');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCancel(appt: DecoratedAppointment) {
+    if (!window.confirm(`Cancelar o agendamento de ${appt.clientName}?`)) return;
+    try {
+      await cancelAppointment(appt.id);
+      showToast(`Agendamento de ${firstName(appt.clientName)} cancelado`);
+      setDrawerId(null);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Não foi possível cancelar');
+    }
   }
 
   const hourMarks = [];
@@ -169,10 +224,6 @@ function AgendaView() {
           <span className={styles.legendItem}>
             <span className={styles.legendSwatch} style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent-line)' }} />
             Confirmado
-          </span>
-          <span className={styles.legendItem}>
-            <span className={styles.legendSwatch} style={{ background: 'var(--surface)', border: '1px dashed var(--line-strong)' }} />
-            Aguardando confirmação
           </span>
           <span className={styles.legendItem}>
             <span className={styles.legendSwatch} style={{ background: 'var(--surface-3)' }} />
@@ -209,7 +260,7 @@ function AgendaView() {
               <div className={styles.headerCorner} />
               {visibleBarbers.map((barber) => {
                 const barberAppts = dayAppointments.filter((a) => a.barberId === barber.id);
-                const booked = barberAppts.reduce((sum, a) => sum + a.service.duration, 0);
+                const booked = barberAppts.reduce((sum, a) => sum + (a.end - a.start), 0);
                 const work = barber.end - barber.start - (barber.brk[1] - barber.brk[0]);
                 const occPct = work > 0 ? Math.round((booked / work) * 100) : 0;
                 return (
@@ -285,7 +336,7 @@ function AgendaView() {
                 <span className={styles.drawerValue}>{drawerAppt.service.name}</span>
               </div>
               <div className={styles.drawerField}>
-                <span className={styles.drawerLabel}>Barbeiro</span>
+                <span className={styles.drawerLabel}>Profissional</span>
                 <span className={styles.drawerValue}>{drawerAppt.barber.name}</span>
               </div>
               <div className={styles.drawerField}>
@@ -294,25 +345,16 @@ function AgendaView() {
               </div>
             </div>
             <div className={styles.drawerActions}>
-              {drawerAppt.status === 'pending' ? (
+              {drawerAppt.status === 'confirmed' ? (
                 <>
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setAppointmentStatus(drawerAppt.id, 'confirmed');
-                      showToast(`Agendamento de ${firstName(drawerAppt.clientName)} confirmado`);
-                      setDrawerId(null);
-                    }}
-                  >
-                    Confirmar agendamento
+                  <Button variant="primary" onClick={() => openComplete(drawerAppt)}>
+                    Concluir atendimento
                   </Button>
-                  <Button onClick={() => showToast(`Lembrete enviado para ${firstName(drawerAppt.clientName)}`)}>
-                    Enviar lembrete por WhatsApp
+                  <Button onClick={() => openRescheduleDialog(drawerAppt)}>Remarcar</Button>
+                  <Button variant="danger" onClick={() => handleCancel(drawerAppt)}>
+                    Cancelar agendamento
                   </Button>
                 </>
-              ) : null}
-              {drawerAppt.status === 'confirmed' || drawerAppt.status === 'pending' ? (
-                <Button onClick={() => openRescheduleDialog(drawerAppt)}>Remarcar</Button>
               ) : null}
             </div>
           </>
@@ -335,30 +377,34 @@ function AgendaView() {
                   placeholder="Nome completo"
                 />
               </Field>
-              <Field label="WhatsApp (opcional)">
+              <Field label="WhatsApp (com DDD)">
                 <Input
-                  inputMode="tel"
+                  inputMode="numeric"
                   value={dialog.clientPhone}
-                  onChange={(e) => setDialog({ ...dialog, clientPhone: e.target.value })}
-                  placeholder="(11) 90000-0000"
+                  onChange={(e) => setDialog({ ...dialog, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 11) })}
+                  placeholder="11900000000"
                 />
               </Field>
             </div>
             <div className={styles.formCol}>
               <Field label="Serviço">
                 <Select value={dialog.serviceId} onChange={(e) => setDialog({ ...dialog, serviceId: e.target.value, start: null })}>
-                  {services
-                    .filter((s) => s.active)
-                    .map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} · {s.duration} min · {brl(s.price)}
-                      </option>
-                    ))}
+                  {offersOf(dialog.barberId).map((o) => (
+                    <option key={o.serviceId} value={o.serviceId}>
+                      {o.name} · {o.duration} min · {brl(o.price)}
+                    </option>
+                  ))}
+                  {offersOf(dialog.barberId).length === 0 ? <option value="">Este profissional ainda não tem serviços</option> : null}
                 </Select>
               </Field>
               <div className={styles.formRow} style={{ marginBottom: 0 }}>
-                <Field label="Barbeiro">
-                  <Select value={dialog.barberId} onChange={(e) => setDialog({ ...dialog, barberId: e.target.value, start: null })}>
+                <Field label="Profissional">
+                  <Select
+                    value={dialog.barberId}
+                    onChange={(e) =>
+                      setDialog({ ...dialog, barberId: e.target.value, serviceId: offersOf(e.target.value)[0]?.serviceId ?? '', start: null })
+                    }
+                  >
                     {barbers.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.name}
@@ -383,9 +429,9 @@ function AgendaView() {
               </div>
             </div>
 
-            {dialogSlots.length === 0 ? (
+            {dialogSlots.length === 0 && dialog.serviceId ? (
               <div className={styles.alertBox}>
-                Sem horário livre para este serviço com este barbeiro neste dia. Troque o barbeiro ou o serviço.
+                Sem horário livre para este serviço com este profissional neste dia. Troque o profissional, o serviço ou o dia.
               </div>
             ) : (
               <p className={styles.summary}>
@@ -401,6 +447,28 @@ function AgendaView() {
             </div>
           </>
         ) : null}
+      </Dialog>
+
+      <Dialog open={!!completeFor} onClose={() => setCompleteFor(null)} title="Concluir atendimento" subtitle={completeFor?.clientName}>
+        <div className={styles.formRow}>
+          <Field label="Valor recebido (R$)">
+            <Input type="number" min={0} step={1} value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} />
+          </Field>
+          <Field label="Forma de pagamento">
+            <Select value={payment.method} onChange={(e) => setPayment({ ...payment, method: e.target.value as PaymentMethod })}>
+              <option value="pix">Pix</option>
+              <option value="cash">Dinheiro</option>
+              <option value="debit">Débito</option>
+              <option value="credit">Crédito</option>
+            </Select>
+          </Field>
+        </div>
+        <div className={styles.dialogActions}>
+          <Button onClick={() => setCompleteFor(null)}>Voltar</Button>
+          <Button variant="primary" disabled={busy || payment.amount === '' || Number(payment.amount) < 0} onClick={handleComplete}>
+            Concluir
+          </Button>
+        </div>
       </Dialog>
     </div>
   );
