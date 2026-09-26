@@ -47,21 +47,18 @@ export class TenantService {
     return { tenant: toTenant(tenant), owner: toMember(owner) };
   }
 
+  async findById(tenantId: string) {
+    const tenant = await this.tenants.findById(tenantId);
+    if (!tenant) {
+      throw new AppException('errors.tenant.notFound', HttpStatus.NOT_FOUND);
+    }
+    return toTenant(tenant);
+  }
+
   /** Public data for the booking page behind `/agendar/:slug`. */
   async findPublic(slug: string) {
     const tenant = await this.findBySlug(slug);
     return { name: tenant.name, slug: tenant.slug };
-  }
-
-  /**
-   * Links the client to the tenant behind the booking link. Idempotent, and
-   * does not bind the client: the same account can be linked to many tenants.
-   * The booking flow reuses this.
-   */
-  async linkClient(slug: string, clientId: string) {
-    const tenant = await this.findBySlug(slug);
-    await this.tenants.linkClient(tenant.id, clientId);
-    return toTenant(tenant);
   }
 
   private async findBySlug(slug: string): Promise<TenantEntity> {

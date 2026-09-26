@@ -1,5 +1,5 @@
-import type { Client, Member } from '@org/contracts';
-import type { ClientEntity, MemberEntity } from '../database';
+import type { Member } from '@org/contracts';
+import type { MemberEntity } from '../database';
 
 /**
  * DB entity -> contract output shape (@org/contracts). Never exposes
@@ -15,19 +15,11 @@ export function toMember(e: MemberEntity): Member {
     createdAt: e.createdAt.toISOString(),
     updatedAt: e.updatedAt.toISOString(),
   };
-  return e.role === 'owner'
-    ? { ...base, role: 'owner' }
-    : { ...base, role: 'employee' };
-}
-
-export function toClient(e: ClientEntity): Client {
+  if (e.role === 'owner') return { ...base, role: 'owner' };
+  if (e.role === 'manager') return { ...base, role: 'manager' };
   return {
-    id: e.id,
-    role: 'client',
-    name: e.name,
-    email: e.email,
-    phone: e.phone,
-    createdAt: e.createdAt.toISOString(),
-    updatedAt: e.updatedAt.toISOString(),
+    ...base,
+    role: 'employee',
+    commissionRate: e.commissionRate === null ? null : Number(e.commissionRate),
   };
 }

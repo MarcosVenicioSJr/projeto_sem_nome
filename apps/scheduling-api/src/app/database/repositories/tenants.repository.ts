@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { MEMBER_ROLE } from '../enums';
 import { MemberEntity } from '../entities/member.entity';
-import { TenantClientEntity } from '../entities/tenant-client.entity';
 import { TenantEntity } from '../entities/tenant.entity';
 
 @Injectable()
@@ -11,10 +10,12 @@ export class TenantsRepository {
   constructor(
     @InjectRepository(TenantEntity)
     private readonly repo: Repository<TenantEntity>,
-    @InjectRepository(TenantClientEntity)
-    private readonly links: Repository<TenantClientEntity>,
     private readonly dataSource: DataSource,
   ) {}
+
+  findById(id: string): Promise<TenantEntity | null> {
+    return this.repo.findOne({ where: { id } });
+  }
 
   findBySlug(slug: string): Promise<TenantEntity | null> {
     return this.repo.findOne({ where: { slug } });
@@ -42,15 +43,5 @@ export class TenantsRepository {
       );
       return { tenant: savedTenant, owner: savedOwner };
     });
-  }
-
-  /** Links a client to a tenant. Idempotent: linking twice is a no-op. */
-  async linkClient(tenantId: string, clientId: string): Promise<void> {
-    await this.links
-      .createQueryBuilder()
-      .insert()
-      .values({ tenantId, clientId })
-      .orIgnore()
-      .execute();
   }
 }

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { emailSchema, passwordSchema, phoneSchema } from '../common/index.js';
-import { nameSchema } from '../user/user.schema.js';
+import { nameSchema, updateProfileSchema } from '../user/user.schema.js';
 
 /** URL-safe company identifier used in `/t/:slug/...` routes. */
 export const slugSchema = z
@@ -36,14 +36,22 @@ export const createTenantSchema = z.object({
 });
 export type CreateTenantInput = z.infer<typeof createTenantSchema>;
 
-/** POST /members/employees — the owner registers an employee with an initial password. */
+/** POST /members/employees — the owner registers an employee (or manager) with an initial password. */
 export const createEmployeeSchema = z.object({
   name: nameSchema,
   email: emailSchema,
   phone: phoneSchema,
   password: passwordSchema,
+  role: z.enum(['employee', 'manager']).default('employee'),
+  commissionRate: z.number().min(0).max(100).nullable().optional(),
 });
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
+
+/** PATCH /members/employees/:id — profile fields plus the commission rate. */
+export const updateEmployeeSchema = updateProfileSchema.extend({
+  commissionRate: z.number().min(0).max(100).nullable().optional(),
+});
+export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 
 /** Route param for `/members/employees/:id`. */
 export const employeeIdParamSchema = z.object({ id: z.uuid() });

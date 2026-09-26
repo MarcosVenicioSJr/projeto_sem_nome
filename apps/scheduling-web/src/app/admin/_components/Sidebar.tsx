@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useShop } from '../_lib/shop';
+import { useSession } from '../../_lib/session';
+import { ROLE_LABEL, useShop } from '../_lib/shop';
 import { Icon } from '../_lib/icons';
 import { moduleGroups } from '../_lib/nav';
 import { Avatar } from './Avatar';
@@ -11,6 +12,7 @@ import styles from './Sidebar.module.css';
 export function Sidebar({ full }: { full: boolean }) {
   const pathname = usePathname();
   const { shop, ownerInitials } = useShop();
+  const { me, logout } = useSession();
   const groups = moduleGroups();
 
   return (
@@ -49,9 +51,14 @@ export function Sidebar({ full }: { full: boolean }) {
         {full ? (
           <div className={styles.footerText}>
             <span className={styles.footerName}>{shop.owner.name}</span>
-            <span className={styles.footerRole}>Dono · /t/{shop.slug}</span>
+            <span className={styles.footerRole}>
+              {me ? ROLE_LABEL[me.role] : ''} · /t/{shop.slug}
+            </span>
           </div>
         ) : null}
+        <button type="button" className={styles.logout} onClick={logout} title="Sair" aria-label="Sair">
+          <Icon name="logout" size={18} />
+        </button>
       </div>
     </nav>
   );

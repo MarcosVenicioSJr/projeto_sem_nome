@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MEMBER_ROLE } from '../enums';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { MemberEntity } from '../entities/member.entity';
 
 /** Services depend on THIS class, never on TypeORM's `Repository` directly. */
@@ -34,13 +34,30 @@ export class MembersRepository {
 
   listEmployees(tenantId: string): Promise<MemberEntity[]> {
     return this.repo.find({
-      where: { tenantId, role: MEMBER_ROLE.EMPLOYEE },
+      where: { tenantId, role: In([MEMBER_ROLE.EMPLOYEE, MEMBER_ROLE.MANAGER]) },
       order: { name: 'ASC' },
     });
   }
 
   /** Scoped to the tenant so an owner can never reach another tenant's employee. */
   findEmployee(tenantId: string, id: string): Promise<MemberEntity | null> {
-    return this.repo.findOne({ where: { id, tenantId, role: MEMBER_ROLE.EMPLOYEE } });
+    return this.repo.findOne({ where: { id, tenantId, role: In([MEMBER_ROLE.EMPLOYEE, MEMBER_ROLE.MANAGER]) } });
+  }
+
+  /** Everyone in the tenant, owner included. */
+  listAll(tenantId: string): Promise<MemberEntity[]> {
+    return this.repo.find({ where: { tenantId }, order: { name: 'ASC' } });
+  }
+
+  /** Any member of the tenant can provide services (a solo owner too). */
+  findInTenant(tenantId: string, id: string): Promise<MemberEntity | null> {
+    return this.repo.findOne({ where: { id, tenantId } });
+  }
+
+  findManyInTenant(tenantId: string, ids: string[]): Promise<MemberEntity[]> {
+    return this.repo.find({
+      where: { tenantId, id: In(ids) },
+      order: { name: 'ASC' },
+    });
   }
 }

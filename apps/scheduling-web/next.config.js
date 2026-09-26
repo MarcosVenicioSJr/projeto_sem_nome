@@ -14,6 +14,13 @@ const nextConfig = {
   turbopack: {
     root: join(__dirname, '../..'),
   },
+
+  // O navegador chama `/api/...` no próprio Next, que repassa para a API —
+  // assim não há CORS. Em produção, aponte API_PROXY_TARGET para a API.
+  async rewrites() {
+    const target = process.env.API_PROXY_TARGET ?? 'http://localhost:3000';
+    return [{ source: '/api/:path*', destination: `${target}/api/:path*` }];
+  },
 };
 
 module.exports = nextConfig;

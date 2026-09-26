@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { registerSchema } from '../auth/register.schema.js';
+import { createAppointmentSchema, slotsQuerySchema } from '../agenda/agenda.schema.js';
 import { loginSchema } from '../auth/login.schema.js';
-import { createTenantSchema, slugSchema } from '../tenant/tenant.schema.js';
+import {
+  createEmployeeSchema,
+  createTenantSchema,
+  slugSchema,
+} from '../tenant/tenant.schema.js';
 import { passwordSchema, phoneSchema } from '../common/index.js';
 import { meSchema, roleSchema } from './user.schema.js';
 import { accessTokenPayloadSchema } from '../auth/token.schema.js';
@@ -13,21 +17,23 @@ const validRegister = {
   password: 'Abcd1234',
 };
 
-describe('registerSchema', () => {
-  it('normalizes email', () => {
-    expect(registerSchema.parse(validRegister).email).toBe('helena@gmail.com');
+describe('createEmployeeSchema', () => {
+  it('normalizes email and defaults the role to employee', () => {
+    const parsed = createEmployeeSchema.parse(validRegister);
+    expect(parsed.email).toBe('helena@gmail.com');
+    expect(parsed.role).toBe('employee');
   });
 
   it('emits i18n keys, not prose, as issue messages', () => {
-    const result = registerSchema.safeParse({ ...validRegister, password: 'short' });
+    const result = createEmployeeSchema.safeParse({ ...validRegister, password: 'short' });
     expect(result.success).toBe(false);
-    const messages = result.error!.issues.map((i) => i.message);
+    const messages = (result.error?.issues ?? []).map((i: { message: string }) => i.message);
     expect(messages).toContain('validation.password.minLength');
   });
 
-  it('does not accept a role from the client', () => {
-    const parsed = registerSchema.parse({ ...validRegister, role: 'owner' });
-    expect(parsed).not.toHaveProperty('role');
+  it('only lets an employee or a manager be created, never an owner', () => {
+    expect(createEmployeeSchema.safeParse({ ...validRegister, role: 'manager' }).success).toBe(true);
+    expect(createEmployeeSchema.safeParse({ ...validRegister, role: 'owner' }).success).toBe(false);
   });
 });
 
@@ -39,10 +45,11 @@ describe('loginSchema', () => {
 });
 
 describe('roleSchema', () => {
-  it('only allows client, owner and employee', () => {
-    expect(roleSchema.safeParse('client').success).toBe(true);
+  it('only allows owner, manager and employee', () => {
     expect(roleSchema.safeParse('owner').success).toBe(true);
+    expect(roleSchema.safeParse('manager').success).toBe(true);
     expect(roleSchema.safeParse('employee').success).toBe(true);
+    expect(roleSchema.safeParse('client').success).toBe(false);
     expect(roleSchema.safeParse('admin').success).toBe(false);
   });
 });
@@ -85,7 +92,7 @@ describe('passwordSchema', () => {
 describe('accessTokenPayloadSchema', () => {
   const base = { sub: '11111111-1111-4111-8111-111111111111', name: 'A B' };
 
-  it.each(['owner', 'employee'])('requires tenantId for %s', (role) => {
+  it.each(['owner', 'manager', 'employee'])('requires tenantId for %s', (role) => {
     expect(accessTokenPayloadSchema.safeParse({ ...base, role }).success).toBe(false);
     expect(
       accessTokenPayloadSchema.safeParse({
@@ -96,9 +103,14 @@ describe('accessTokenPayloadSchema', () => {
     ).toBe(true);
   });
 
-  it('a client token has no tenant', () => {
-    const parsed = accessTokenPayloadSchema.parse({ ...base, role: 'client' });
-    expect(parsed).not.toHaveProperty('tenantId');
+  it('has no client role: end customers have no account', () => {
+    expect(
+      accessTokenPayloadSchema.safeParse({
+        ...base,
+        role: 'client',
+        tenantId: '22222222-2222-4222-8222-222222222222',
+      }).success,
+    ).toBe(false);
   });
 });
 
@@ -112,8 +124,43 @@ describe('meSchema', () => {
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };
-    expect(meSchema.safeParse({ ...account, role: 'client' }).success).toBe(true);
+    const tenantId = '22222222-2222-4222-8222-222222222222';
+    expect(meSchema.safeParse({ ...account, role: 'owner', tenantId }).success).toBe(true);
+    expect(meSchema.safeParse({ ...account, role: 'manager', tenantId }).success).toBe(true);
+    expect(
+      meSchema.safeParse({ ...account, role: 'employee', tenantId, commissionRate: null }).success,
+    ).toBe(true);
     expect(meSchema.safeParse({ ...account, role: 'owner' }).success).toBe(false);
-    expect(meSchema.safeParse({ ...account, role: 'employee' }).success).toBe(false);
+    expect(meSchema.safeParse({ ...account, role: 'client' }).success).toBe(false);
+  });
+});
+
+describe('createAppointmentSchema', () => {
+  const body = {
+    professionalId: '11111111-1111-4111-8111-111111111111',
+    serviceIds: ['22222222-2222-4222-8222-222222222222'],
+    clientName: 'Helena Cardoso',
+    clientPhone: '11987654321',
+    startAt: '2026-09-28T13:00:00.000Z',
+  };
+
+  it('needs only a name and a phone from the client — no account', () => {
+    expect(createAppointmentSchema.safeParse(body).success).toBe(true);
+  });
+
+  it('requires at least one service', () => {
+    expect(createAppointmentSchema.safeParse({ ...body, serviceIds: [] }).success).toBe(false);
+  });
+});
+
+describe('slotsQuerySchema', () => {
+  it('splits a comma-separated serviceIds list', () => {
+    const parsed = slotsQuerySchema.parse({
+      professionalId: '11111111-1111-4111-8111-111111111111',
+      date: '2026-09-28',
+      serviceIds:
+        '22222222-2222-4222-8222-222222222222,33333333-3333-4333-8333-333333333333',
+    });
+    expect(parsed.serviceIds).toHaveLength(2);
   });
 });

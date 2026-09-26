@@ -51,6 +51,10 @@ export type Appointment = {
   /** minutos desde 00:00 */
   start: number;
   status: AppointmentStatus;
+  /** duração real do agendamento (soma dos serviços do profissional), em minutos */
+  durationMinutes?: number;
+  /** valor total dos serviços, congelado no momento da reserva */
+  price?: number;
 };
 
 export type StockKind = 'Venda' | 'Insumo';

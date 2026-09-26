@@ -2,26 +2,54 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { Env } from '../config';
-import { ClientEntity } from './entities/client.entity';
 import { MemberEntity } from './entities/member.entity';
-import { TenantClientEntity } from './entities/tenant-client.entity';
 import { TenantEntity } from './entities/tenant.entity';
+import { AppointmentEntity } from './entities/appointment.entity';
+import { AppointmentServiceEntity } from './entities/appointment-service.entity';
+import { ExpenseEntryEntity } from './entities/expense-entry.entity';
+import { ProductEntity } from './entities/product.entity';
+import { ProfessionalScheduleEntity } from './entities/professional-schedule.entity';
+import { ProfessionalServiceEntity } from './entities/professional-service.entity';
+import { ProfessionalTimeOffEntity } from './entities/professional-time-off.entity';
+import { RevenueEntryEntity } from './entities/revenue-entry.entity';
+import { ServiceEntity } from './entities/service.entity';
+import { StockItemEntity } from './entities/stock-item.entity';
+import { AppointmentsRepository } from './repositories/appointments.repository';
+import { ExpenseEntriesRepository } from './repositories/expense-entries.repository';
+import { ProductsRepository } from './repositories/products.repository';
+import { ProfessionalAvailabilityRepository } from './repositories/professional-availability.repository';
+import { ProfessionalServicesRepository } from './repositories/professional-services.repository';
+import { ServicesRepository } from './repositories/services.repository';
+import { StockItemsRepository } from './repositories/stock-items.repository';
 
-import { ClientsRepository } from './repositories/clients.repository';
 import { MembersRepository } from './repositories/members.repository';
 import { TenantsRepository } from './repositories/tenants.repository';
 
 const ENTITIES = [
   TenantEntity,
   MemberEntity,
-  ClientEntity,
-  TenantClientEntity,
+  AppointmentEntity,
+  AppointmentServiceEntity,
+  ExpenseEntryEntity,
+  ProductEntity,
+  ProfessionalScheduleEntity,
+  ProfessionalServiceEntity,
+  ProfessionalTimeOffEntity,
+  RevenueEntryEntity,
+  ServiceEntity,
+  StockItemEntity,
 ];
 
 const REPOSITORIES = [
   TenantsRepository,
   MembersRepository,
-  ClientsRepository,
+  AppointmentsRepository,
+  ExpenseEntriesRepository,
+  ProductsRepository,
+  ProfessionalAvailabilityRepository,
+  ProfessionalServicesRepository,
+  ServicesRepository,
+  StockItemsRepository,
 ];
 
 /**

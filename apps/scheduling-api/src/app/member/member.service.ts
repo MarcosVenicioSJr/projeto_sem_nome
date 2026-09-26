@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { hash } from 'bcryptjs';
-import type { CreateEmployeeInput, UpdateProfileInput } from '@org/contracts';
+import type { CreateEmployeeInput, UpdateEmployeeInput } from '@org/contracts';
 import { AppException } from '../common/app.exception';
 import {
   MEMBER_ROLE,
@@ -25,13 +25,21 @@ export class MemberService {
     }
     const employee = await this.members.create({
       tenantId,
-      role: MEMBER_ROLE.EMPLOYEE,
+      role:
+        input.role === 'manager' ? MEMBER_ROLE.MANAGER : MEMBER_ROLE.EMPLOYEE,
+      commissionRate:
+        input.commissionRate == null ? null : String(input.commissionRate),
       name: input.name,
       email: input.email,
       phone: input.phone,
       passwordHash: await hash(input.password, BCRYPT_ROUNDS),
     });
     return toMember(employee);
+  }
+
+  /** The whole team (owner, managers, employees) — everyone can provide services. */
+  async listTeam(tenantId: string) {
+    return (await this.members.listAll(tenantId)).map(toMember);
   }
 
   async listEmployees(tenantId: string) {
@@ -41,7 +49,7 @@ export class MemberService {
   async updateEmployee(
     tenantId: string,
     id: string,
-    input: UpdateProfileInput,
+    input: UpdateEmployeeInput,
   ) {
     const employee = await this.findEmployee(tenantId, id);
     if (
@@ -51,7 +59,16 @@ export class MemberService {
     ) {
       throw new AppException('errors.auth.emailTaken', HttpStatus.CONFLICT);
     }
-    await this.members.update(id, input);
+    const { commissionRate, ...profile } = input;
+    await this.members.update(id, {
+      ...profile,
+      ...(commissionRate === undefined
+        ? {}
+        : {
+            commissionRate:
+              commissionRate === null ? null : String(commissionRate),
+          }),
+    });
     return toMember(await this.findEmployee(tenantId, id));
   }
 

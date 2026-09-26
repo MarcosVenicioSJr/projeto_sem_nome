@@ -1,0 +1,2 @@
+# Atlas checksums (atlas.sum) are computed over LF content; keep migrations LF on every OS.
+apps/scheduling-api/src/app/database/migrations/* text eol=lf

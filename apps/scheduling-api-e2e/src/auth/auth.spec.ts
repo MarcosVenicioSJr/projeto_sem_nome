@@ -8,12 +8,12 @@ const PASSWORD = 'Abcd1234';
 /** Onboarding: creates a company + owner. */
 async function createTenant() {
   const id = uniq();
-  const slug = `clinica-${id}`;
+  const slug = `empresa-${id}`;
   const ownerEmail = `dono-${id}@example.com`;
   const res = await axios.post('/api/tenants', {
-    tenant: { name: `Clínica ${id}`, slug },
+    tenant: { name: `Empresa ${id}`, slug },
     owner: {
-      name: 'Dona Clínica',
+      name: 'Dona Empresa',
       email: ownerEmail,
       phone: '11987654321',
       password: PASSWORD,
@@ -22,26 +22,12 @@ async function createTenant() {
   return { res, slug, ownerEmail };
 }
 
-const clientBody = (email: string) => ({
-  name: 'Helena Cardoso',
-  email,
-  phone: '11912345678',
-  password: PASSWORD,
-});
-
-const newClientEmail = () => `cliente-${uniq()}@example.com`;
-const registerClient = (email: string) =>
-  axios.post('/api/auth/client/register', clientBody(email));
-const loginClient = (email: string, password = PASSWORD) =>
-  axios.post('/api/auth/client/login', { email, password });
 const loginMember = (email: string, password = PASSWORD) =>
   axios.post('/api/auth/member/login', { email, password });
 const bearer = (token: string) => ({
   headers: { Authorization: `Bearer ${token}` },
 });
 const me = (token: string) => axios.get('/api/user/me', bearer(token));
-const join = (slug: string, token: string) =>
-  axios.post(`/api/t/${slug}/clients/join`, {}, bearer(token));
 
 describe('Tenants and auth (e2e)', () => {
   it('onboarding creates the tenant and its owner; owner logs in', async () => {
@@ -78,66 +64,19 @@ describe('Tenants and auth (e2e)', () => {
     expect(emailTaken.data.code).toBe('errors.auth.emailTaken');
   });
 
-  it('client registers globally, logs in and reads /user/me', async () => {
-    const email = newClientEmail();
-    const reg = await registerClient(email);
-    expect(reg.status).toBe(201);
-    expect(reg.data.role).toBe('client');
-    expect(reg.data).not.toHaveProperty('tenantId');
-
-    const session = await loginClient(email);
-    expect(session.status).toBe(200);
-    const profile = await me(session.data.accessToken);
-    expect(profile.data).toMatchObject({ role: 'client', email });
-  });
-
-  it('client email is globally unique (409 on duplicate)', async () => {
-    const email = newClientEmail();
-    await registerClient(email);
-    const dup = await registerClient(email);
-    expect(dup.status).toBe(409);
-    expect(dup.data.code).toBe('errors.auth.emailTaken');
-  });
-
-  it('the same client links to several tenants; joining twice is idempotent', async () => {
-    const a = await createTenant();
-    const b = await createTenant();
-    const email = newClientEmail();
-    await registerClient(email);
-    const { accessToken } = (await loginClient(email)).data;
-
-    const first = await join(a.slug, accessToken);
-    expect(first.status).toBe(200);
-    expect(first.data.slug).toBe(a.slug);
-    expect((await join(a.slug, accessToken)).status).toBe(200);
-    expect((await join(b.slug, accessToken)).status).toBe(200);
-  });
-
-  it('joining needs a client token and an existing tenant', async () => {
-    const { slug, ownerEmail } = await createTenant();
-    const ownerToken = (await loginMember(ownerEmail)).data.accessToken;
-
-    const asOwner = await join(slug, ownerToken);
-    expect(asOwner.status).toBe(403);
-    expect(asOwner.data.code).toBe('errors.auth.forbidden');
-
-    const anonymous = await axios.post(`/api/t/${slug}/clients/join`);
-    expect(anonymous.status).toBe(401);
-
-    const email = newClientEmail();
-    await registerClient(email);
-    const clientToken = (await loginClient(email)).data.accessToken;
-    const missing = await join(`nao-existe-${uniq()}`, clientToken);
-    expect(missing.status).toBe(404);
-    expect(missing.data.code).toBe('errors.tenant.notFound');
-  });
-
   it('public tenant page data is available by slug', async () => {
     const { slug } = await createTenant();
     const res = await axios.get(`/api/t/${slug}`);
     expect(res.status).toBe(200);
     expect(res.data.slug).toBe(slug);
     expect(res.data).not.toHaveProperty('id');
+  });
+
+  it('end customers have no account: the client auth routes are gone', async () => {
+    const register = await axios.post('/api/auth/client/register', {});
+    const login = await axios.post('/api/auth/client/login', {});
+    expect(register.status).toBe(404);
+    expect(login.status).toBe(404);
   });
 
   describe('employees', () => {
@@ -152,17 +91,21 @@ describe('Tenants and auth (e2e)', () => {
       const token = (await loginMember(t.ownerEmail)).data.accessToken as string;
       return { ...t, token };
     };
-    const createEmployee = (token: string, body = employeeBody()) =>
+    const createEmployee = (token: string, body: object = employeeBody()) =>
       axios.post('/api/members/employees', body, bearer(token));
 
     it('owner creates an employee who logs in with a tenant-bound token', async () => {
       const owner = await asOwner();
       const body = employeeBody();
-      const created = await createEmployee(owner.token, body);
+      const created = await createEmployee(owner.token, {
+        ...body,
+        commissionRate: 40,
+      });
       expect(created.status).toBe(201);
       expect(created.data).toMatchObject({
         role: 'employee',
         tenantId: owner.res.data.tenant.id,
+        commissionRate: 40,
       });
       expect(created.data).not.toHaveProperty('passwordHash');
 
@@ -173,6 +116,18 @@ describe('Tenants and auth (e2e)', () => {
         role: 'employee',
         tenantId: owner.res.data.tenant.id,
       });
+    });
+
+    it('owner can create a manager, who can manage but has a tenant-bound token', async () => {
+      const owner = await asOwner();
+      const body = employeeBody();
+      const created = await createEmployee(owner.token, { ...body, role: 'manager' });
+      expect(created.status).toBe(201);
+      expect(created.data.role).toBe('manager');
+
+      const managerToken = (await loginMember(body.email)).data.accessToken;
+      const list = await axios.get('/api/members/employees', bearer(managerToken));
+      expect(list.status).toBe(200);
     });
 
     it('owner lists and updates only their own tenant employees', async () => {
@@ -187,11 +142,11 @@ describe('Tenants and auth (e2e)', () => {
 
       const upd = await axios.patch(
         `/api/members/employees/${emp.id}`,
-        { name: 'Ana Renomeada' },
+        { name: 'Ana Renomeada', commissionRate: 35.5 },
         bearer(a.token),
       );
       expect(upd.status).toBe(200);
-      expect(upd.data.name).toBe('Ana Renomeada');
+      expect(upd.data).toMatchObject({ name: 'Ana Renomeada', commissionRate: 35.5 });
 
       const cross = await axios.patch(
         `/api/members/employees/${emp.id}`,
@@ -212,7 +167,7 @@ describe('Tenants and auth (e2e)', () => {
       expect(dup.data.code).toBe('errors.auth.emailTaken');
     });
 
-    it('employees and clients cannot manage employees or edit their profile', async () => {
+    it('employees cannot manage employees or edit their profile', async () => {
       const owner = await asOwner();
       const body = employeeBody();
       await createEmployee(owner.token, body);
@@ -225,43 +180,26 @@ describe('Tenants and auth (e2e)', () => {
 
       const patchMe = await axios.patch('/api/user/me', { name: 'Novo Nome' }, bearer(empToken));
       expect(patchMe.status).toBe(403);
-
-      const email = newClientEmail();
-      await registerClient(email);
-      const clientToken = (await loginClient(email)).data.accessToken;
-      expect((await createEmployee(clientToken)).status).toBe(403);
-      expect(
-        (await axios.patch('/api/user/me', { name: 'Novo Nome' }, bearer(clientToken))).status,
-      ).toBe(200);
     });
-
-    it('an employee cannot join a booking link (client only)', async () => {
-      const owner = await asOwner();
-      const body = employeeBody();
-      await createEmployee(owner.token, body);
-      const empToken = (await loginMember(body.email)).data.accessToken;
-      expect((await join(owner.slug, empToken)).status).toBe(403);
-    });
-  });
-
-  it('client and owner logins are separate', async () => {
-    const { ownerEmail } = await createTenant();
-    const email = newClientEmail();
-    await registerClient(email);
-
-    expect((await loginClient(ownerEmail)).status).toBe(401);
-    expect((await loginMember(email)).status).toBe(401);
   });
 
   it('rejects a bad body with a localized 422 (Accept-Language)', async () => {
     const post = (lang: string) =>
       axios.post(
-        '/api/auth/client/register',
-        { ...clientBody(newClientEmail()), phone: '123' },
+        '/api/tenants',
+        {
+          tenant: { name: 'Empresa', slug: `empresa-${uniq()}` },
+          owner: {
+            name: 'Dono Teste',
+            email: `dono-${uniq()}@example.com`,
+            phone: '123',
+            password: PASSWORD,
+          },
+        },
         { headers: { 'Accept-Language': lang } },
       );
     const find = (data: { issues: { path: string; message: string }[] }) =>
-      data.issues.find((i) => i.path === 'phone');
+      data.issues.find((i) => i.path.endsWith('phone'));
 
     const en = await post('en');
     expect(en.status).toBe(422);
@@ -272,7 +210,7 @@ describe('Tenants and auth (e2e)', () => {
   });
 
   it('login with wrong credentials is a generic 401', async () => {
-    const res = await loginClient(newClientEmail(), 'whatever');
+    const res = await loginMember(`ninguem-${uniq()}@example.com`, 'whatever');
     expect(res.status).toBe(401);
     expect(res.data.code).toBe('errors.auth.invalidCredentials');
   });

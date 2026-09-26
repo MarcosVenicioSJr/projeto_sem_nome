@@ -28,7 +28,7 @@ export const MODULES: ModuleMeta[] = [
   { id: 'servicos', href: '/admin/servicos', label: 'Serviços', short: 'Serviços', group: 'Catálogo', sub: 'Cardápio, duração e preço', icon: 'servicos' },
   { id: 'produtos', href: '/admin/produtos', label: 'Produtos', short: 'Produtos', group: 'Catálogo', sub: 'Itens à venda no balcão', icon: 'produtos' },
   { id: 'estoque', href: '/admin/estoque', label: 'Estoque', short: 'Estoque', group: 'Catálogo', sub: 'Saldo, mínimo e entradas', icon: 'estoque' },
-  { id: 'equipe', href: '/admin/equipe', label: 'Equipe', short: 'Equipe', group: 'Gestão', sub: 'Barbeiros, horários e comissões', icon: 'equipe' },
+  { id: 'equipe', href: '/admin/equipe', label: 'Equipe', short: 'Equipe', group: 'Gestão', sub: 'Profissionais, horários e comissões', icon: 'equipe' },
   { id: 'financeiro', href: '/admin/financeiro', label: 'Financeiro', short: 'Caixa', group: 'Gestão', sub: 'Caixa do dia e resultado do mês', icon: 'financeiro' },
   { id: 'relatorios', href: '/admin/relatorios', label: 'Relatórios', short: 'Relatórios', group: 'Gestão', sub: 'Desempenho do mês', icon: 'relatorios' },
   { id: 'site', href: '/admin/site', label: 'Meu Site', short: 'Site', group: 'Presença', sub: 'Página pública de agendamento', icon: 'site' },

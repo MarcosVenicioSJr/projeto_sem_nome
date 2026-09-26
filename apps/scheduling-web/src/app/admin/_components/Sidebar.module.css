@@ -141,3 +141,20 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.logout {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--side-muted);
+  cursor: pointer;
+}
+.logout:hover {
+  background: var(--side-hover);
+  color: var(--side-text);
+}

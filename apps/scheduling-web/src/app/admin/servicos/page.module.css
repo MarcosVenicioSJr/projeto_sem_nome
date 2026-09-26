@@ -57,3 +57,37 @@
   justify-content: flex-end;
   gap: 10px;
 }
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.none {
+  color: var(--faint);
+  font-size: 13px;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.offerRow {
+  display: grid;
+  grid-template-columns: 1fr 96px 80px;
+  align-items: center;
+  gap: 10px;
+}
+.offerName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}

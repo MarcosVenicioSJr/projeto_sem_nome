@@ -1,12 +1,12 @@
 import { ROLE } from '@org/contracts';
 
 /**
- * Roles of a tenant-bound account (`members` table). A subset of the
- * contracts' `ROLE` (the `client` lives in its own table), derived from it so
- * the values never drift.
+ * Roles of a tenant-bound account (`members` table), derived from the
+ * contracts' `ROLE` so the values never drift.
  */
 export const MEMBER_ROLE = {
   OWNER: ROLE.OWNER,
+  MANAGER: ROLE.MANAGER,
   EMPLOYEE: ROLE.EMPLOYEE,
 } as const;
 

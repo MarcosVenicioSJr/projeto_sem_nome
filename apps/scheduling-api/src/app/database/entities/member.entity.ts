@@ -49,6 +49,16 @@ export class MemberEntity {
   @Column({ length: 11 })
   phone!: string;
 
+  /** Commission (%) over the services done; only meaningful for employees. */
+  @Column({
+    name: 'commission_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
+  commissionRate!: string | null;
+
   @Column({ name: 'password_hash' })
   passwordHash!: string;
 

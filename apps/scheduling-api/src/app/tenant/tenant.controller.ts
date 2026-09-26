@@ -1,13 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import { CurrentUser, JwtAuthGuard, Roles, RolesGuard } from '../auth/jwt';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard, RolesGuard, TenantId } from '../auth/jwt';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { TenantSlugParamDto } from './dto/tenant-slug-param.dto';
 import { TenantService } from './tenant.service';
@@ -22,21 +14,16 @@ export class TenantController {
     return this.tenantService.create(dto);
   }
 
+  /** The caller's own company. */
+  @Get('tenants/me')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  me(@TenantId() tenantId: string) {
+    return this.tenantService.findById(tenantId);
+  }
+
   /** Public: what the booking page shows for `/agendar/:slug`. */
   @Get('t/:slug')
   findPublic(@Param() { slug }: TenantSlugParamDto) {
     return this.tenantService.findPublic(slug);
-  }
-
-  /** A logged-in client opens the tenant's link: links the account to it. */
-  @Post('t/:slug/clients/join')
-  @HttpCode(200)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('client')
-  join(
-    @Param() { slug }: TenantSlugParamDto,
-    @CurrentUser('sub') clientId: string,
-  ) {
-    return this.tenantService.linkClient(slug, clientId);
   }
 }

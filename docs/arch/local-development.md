@@ -30,22 +30,58 @@ npx nx serve scheduling-api
 # http://localhost:3000/api
 ```
 
-Onboarding and auth (multitenant). The owner creates the company and their
-employees; clients have a global account and are linked to a company through its
-booking link:
+Onboarding and auth (multitenant). The owner creates the company and its team
+(employees = professionals who provide services, and managers). The end
+customer has **no account**: they book with just a name and a phone.
 
 ```
 POST  /api/tenants                   { tenant: { name, slug }, owner: { name, email, phone, password } }
-POST  /api/auth/member/login         { email, password }  -> { accessToken, accessTokenExpiresInSeconds }   (owner or employee)
-POST  /api/members/employees         (owner token) { name, email, phone, password }
-GET   /api/members/employees         (owner token)
-PATCH /api/members/employees/:id     (owner token) { name?, email?, phone? }
-POST  /api/auth/client/register      { name, email, phone, password }
-POST  /api/auth/client/login         { email, password }  -> { accessToken, accessTokenExpiresInSeconds }
-GET   /api/t/:slug                   public data for the booking page
-POST  /api/t/:slug/clients/join      (client token) links the client to the company
+POST  /api/auth/member/login         { email, password }  -> { accessToken, accessTokenExpiresInSeconds }   (owner, manager or employee)
 GET   /api/user/me                   Authorization: Bearer <accessToken>
+POST  /api/members/employees         (owner/manager) { name, email, phone, password, role?: 'employee'|'manager', commissionRate? }
+GET   /api/members/employees         (owner/manager)
+PATCH /api/members/employees/:id     (owner/manager) { name?, email?, phone?, commissionRate? }
 ```
+
+Catalog, agenda and finance (all scoped to the token's tenant; see
+[ADR-018](./decisions.md#adr-018--barbershop-management-domain-no-client-accounts-generic-professionals)):
+
+```
+CRUD  /api/services                          (owner/manager)         service = just a name
+GET/PUT/DELETE /api/members/:id/services     (owner/manager, or the employee themself)  price + duration per professional
+GET/PUT /api/members/:id/schedule            weekly hours (PUT replaces the week)
+GET/POST/DELETE /api/members/:id/time-off    days off / blocked windows
+
+GET   /api/t/:slug                           public: company name/slug
+GET   /api/t/:slug/agenda/professionals      public: professionals + their services
+GET   /api/t/:slug/agenda/slots?professionalId=&date=YYYY-MM-DD&serviceIds=a,b
+POST  /api/t/:slug/agenda/appointments       public: { professionalId, serviceIds[], clientName, clientPhone, startAt } -> booking + cancelToken
+POST  /api/agenda/cancel/:token              public: client cancels via link (until 2h before)
+
+GET   /api/agenda?date=&professionalId?      staff agenda (employees see only their own)
+PATCH /api/agenda/:id/done                   { amount, paymentMethod: cash|pix|debit|credit } -> records revenue
+PATCH /api/agenda/:id/cancel                 counter cancellation (also how a no-show is handled)
+
+CRUD  /api/finance/expenses                  (owner/manager)
+GET   /api/finance/commissions?date=         (owner/manager) daily closing per professional
+GET   /api/finance/reports/revenue?month=YYYY-MM   (owner/manager)
+GET   /api/finance/reports/clients?month=YYYY-MM   (owner/manager)
+CRUD  /api/stock-items  + PATCH /:id/quantity      internal consumables (any member adjusts quantity)
+CRUD  /api/products                          (owner/manager) items for sale
+```
+
+## Run the web portal
+
+```bash
+npx nx run scheduling-web:dev -- --port 4200   # http://localhost:4200
+```
+
+The API must be up on `:3000` (see above). Open `/cadastro` to create a company
+(you become its owner) or `/login`. The portal calls `/api/...` on the Next server,
+which proxies to the API. Modules already wired to the API: Serviços, Equipe
+(profissionais, horários, comissão), Agenda, Produtos, Estoque, Financeiro e
+Relatórios. Dashboard, Configurações e Meu Site still use local mock data (their
+specs have no business rules yet).
 
 Send `Accept-Language: pt-BR` (or `en`) to pick the response language.
 
@@ -56,7 +92,7 @@ npx nx e2e scheduling-api-e2e
 ```
 
 Self-bootstrapping: `globalSetup` brings up docker-compose, applies migrations,
-starts the built API, and reads the verification code from Mailpit. Set
+and starts the built API. Set
 `E2E_SKIP_INFRA=true` if you already have the stack + schema up. See
 [ADR-016](./decisions.md#adr-016--e2e-black-box-self-bootstrapping-infra).
 
