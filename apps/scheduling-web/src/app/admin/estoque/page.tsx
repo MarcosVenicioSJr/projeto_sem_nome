@@ -16,7 +16,15 @@ const EMPTY_NEW = { name: '', unit: 'un', quantity: '0', minQuantity: '0' };
 
 /** Consumíveis internos (lâmina, álcool, gel...). Controle manual, sem vínculo com atendimentos. */
 export default function EstoquePage() {
-  const { stockItems, loading, loadError, createStockItem, adjustStock, removeStockItem, showToast } = useAdminData();
+  const {
+    stockItems,
+    loading,
+    loadError,
+    createStockItem,
+    adjustStock,
+    removeStockItem,
+    showToast,
+  } = useAdminData();
   const { isManagement } = useSession();
   const lowStock = stockItems.filter((s) => s.lowStock);
 
@@ -26,7 +34,8 @@ export default function EstoquePage() {
   const [amount, setAmount] = useState('1');
   const [busy, setBusy] = useState(false);
 
-  const fail = (e: unknown) => showToast(e instanceof Error ? e.message : 'Algo deu errado');
+  const fail = (e: unknown) =>
+    showToast(e instanceof Error ? e.message : 'Algo deu errado');
 
   async function handleCreate() {
     setBusy(true);
@@ -52,7 +61,9 @@ export default function EstoquePage() {
     setBusy(true);
     try {
       await adjustStock(adjust.item.id, adjust.direction * Number(amount));
-      showToast(`${adjust.direction > 0 ? 'Entrada' : 'Saída'} registrada: ${amount} ${adjust.item.unit} de ${adjust.item.name}`);
+      showToast(
+        `${adjust.direction > 0 ? 'Entrada' : 'Saída'} registrada: ${amount} ${adjust.item.unit} de ${adjust.item.name}`,
+      );
       setAdjust(null);
     } catch (e) {
       fail(e);
@@ -86,22 +97,53 @@ export default function EstoquePage() {
               {i.quantity} {i.unit} · mín. {i.minQuantity} {i.unit}
             </span>
             <div className={styles.balanceTrack}>
-              <div className={styles.balanceFill} style={{ width: pct + '%', background: i.lowStock ? 'var(--danger)' : 'var(--accent)' }} />
-              <div className={styles.balanceMarker} style={{ left: markerPct + '%' }} />
+              <div
+                className={styles.balanceFill}
+                style={{
+                  width: pct + '%',
+                  background: i.lowStock ? 'var(--danger)' : 'var(--accent)',
+                }}
+              />
+              <div
+                className={styles.balanceMarker}
+                style={{ left: markerPct + '%' }}
+              />
             </div>
           </div>
         );
       },
     },
-    { key: 'status', header: 'Status', render: (i) => <Badge tone={i.lowStock ? 'danger' : 'ok'}>{i.lowStock ? 'Repor' : 'OK'}</Badge> },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (i) => (
+        <Badge tone={i.lowStock ? 'danger' : 'ok'}>
+          {i.lowStock ? 'Repor' : 'OK'}
+        </Badge>
+      ),
+    },
     {
       key: 'action',
       header: '',
       align: 'right',
       render: (i) => (
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button onClick={() => { setAmount('1'); setAdjust({ item: i, direction: 1 }); }}>+ Entrada</Button>
-          <Button onClick={() => { setAmount('1'); setAdjust({ item: i, direction: -1 }); }}>− Saída</Button>
+          <Button
+            onClick={() => {
+              setAmount('1');
+              setAdjust({ item: i, direction: 1 });
+            }}
+          >
+            + Entrada
+          </Button>
+          <Button
+            onClick={() => {
+              setAmount('1');
+              setAdjust({ item: i, direction: -1 });
+            }}
+          >
+            − Saída
+          </Button>
           {isManagement ? (
             <Button variant="danger" onClick={() => handleRemove(i)}>
               Excluir
@@ -112,13 +154,18 @@ export default function EstoquePage() {
     },
   ];
 
-  const validNew = form.name.trim().length >= 2 && form.unit.trim().length > 0 && Number(form.quantity) >= 0 && Number(form.minQuantity) >= 0;
+  const validNew =
+    form.name.trim().length >= 2 &&
+    form.unit.trim().length > 0 &&
+    Number(form.quantity) >= 0 &&
+    Number(form.minQuantity) >= 0;
 
   return (
     <div className={styles.page}>
       {lowStock.length ? (
         <div className={styles.banner}>
-          {lowStock.length} itens no mínimo ou abaixo: {lowStock.map((s) => s.name).join(', ')}
+          {lowStock.length} itens no mínimo ou abaixo:{' '}
+          {lowStock.map((s) => s.name).join(', ')}
         </div>
       ) : null}
 
@@ -130,32 +177,80 @@ export default function EstoquePage() {
         </div>
       ) : null}
 
-      {loadError ? <p style={{ color: 'var(--danger)', fontSize: 13 }}>{loadError}</p> : null}
-      {loading ? <p style={{ color: 'var(--muted)', fontSize: 13 }}>Carregando…</p> : <Table columns={cols} rows={stockItems} />}
+      {loadError ? (
+        <p style={{ color: 'var(--danger)', fontSize: 13 }}>{loadError}</p>
+      ) : null}
+      {loading ? (
+        <p style={{ color: 'var(--muted)', fontSize: 13 }}>Carregando…</p>
+      ) : (
+        <Table columns={cols} rows={stockItems} />
+      )}
       <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-        Estoque de consumíveis usados pelos profissionais (lâmina, álcool, gel). O controle é manual e independente dos atendimentos.
+        Estoque de consumíveis usados pelos profissionais (lâmina, álcool, gel).
+        O controle é manual e independente dos atendimentos.
       </p>
 
-      <Dialog open={newOpen} onClose={() => setNewOpen(false)} title="Novo item de estoque">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
+      <Dialog
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        title="Novo item de estoque"
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            marginBottom: 16,
+          }}
+        >
           <Field label="Nome">
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex.: Lâminas descartáveis" />
+            <Input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Ex.: Lâminas descartáveis"
+            />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gap: 12,
+            }}
+          >
             <Field label="Unidade">
-              <Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} placeholder="un, cx, ml" />
+              <Input
+                value={form.unit}
+                onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                placeholder="un, cx, ml"
+              />
             </Field>
             <Field label="Quantidade atual">
-              <Input type="number" min={0} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
+              <Input
+                type="number"
+                min={0}
+                value={form.quantity}
+                onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+              />
             </Field>
             <Field label="Mínimo (alerta)">
-              <Input type="number" min={0} value={form.minQuantity} onChange={(e) => setForm({ ...form, minQuantity: e.target.value })} />
+              <Input
+                type="number"
+                min={0}
+                value={form.minQuantity}
+                onChange={(e) =>
+                  setForm({ ...form, minQuantity: e.target.value })
+                }
+              />
             </Field>
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button onClick={() => setNewOpen(false)}>Cancelar</Button>
-          <Button variant="primary" disabled={busy || !validNew} onClick={handleCreate}>
+          <Button
+            variant="primary"
+            disabled={busy || !validNew}
+            onClick={handleCreate}
+          >
             Cadastrar
           </Button>
         </div>
@@ -164,17 +259,35 @@ export default function EstoquePage() {
       <Dialog
         open={adjust !== null}
         onClose={() => setAdjust(null)}
-        title={adjust ? `${adjust.direction > 0 ? 'Entrada' : 'Saída'} · ${adjust.item.name}` : ''}
-        subtitle={adjust ? `Saldo atual: ${adjust.item.quantity} ${adjust.item.unit}` : undefined}
+        title={
+          adjust
+            ? `${adjust.direction > 0 ? 'Entrada' : 'Saída'} · ${adjust.item.name}`
+            : ''
+        }
+        subtitle={
+          adjust
+            ? `Saldo atual: ${adjust.item.quantity} ${adjust.item.unit}`
+            : undefined
+        }
       >
         <div style={{ marginBottom: 16 }}>
           <Field label={`Quantidade (${adjust?.item.unit ?? ''})`}>
-            <Input type="number" min={0} step="any" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <Input
+              type="number"
+              min={0}
+              step="any"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
           </Field>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button onClick={() => setAdjust(null)}>Cancelar</Button>
-          <Button variant="primary" disabled={busy || !(Number(amount) > 0)} onClick={handleAdjust}>
+          <Button
+            variant="primary"
+            disabled={busy || !(Number(amount) > 0)}
+            onClick={handleAdjust}
+          >
             Registrar
           </Button>
         </div>

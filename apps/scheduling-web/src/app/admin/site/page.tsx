@@ -9,14 +9,35 @@ import { brl } from '../_lib/format';
 import styles from './page.module.css';
 
 export default function SitePage() {
-  const { services, products, site, toggleSiteSetting, showToast } = useAdminData();
+  const { services, products, site, toggleSiteSetting, showToast } =
+    useAdminData();
   const { shop, publicBookingUrl } = useShop();
 
-  const switches: Array<{ key: keyof typeof site; label: string; desc: string }> = [
-    { key: 'online', label: 'Agendamento online', desc: 'Clientes marcam pelo link, 24h' },
-    { key: 'precos', label: 'Mostrar preços', desc: 'Exibe o valor de cada serviço' },
-    { key: 'escolher', label: 'Cliente escolhe o barbeiro', desc: 'Se desligado, o sistema distribui' },
-    { key: 'produtos', label: 'Vitrine de produtos', desc: 'Lista os produtos à venda no balcão' },
+  const switches: Array<{
+    key: keyof typeof site;
+    label: string;
+    desc: string;
+  }> = [
+    {
+      key: 'online',
+      label: 'Agendamento online',
+      desc: 'Clientes marcam pelo link, 24h',
+    },
+    {
+      key: 'precos',
+      label: 'Mostrar preços',
+      desc: 'Exibe o valor de cada serviço',
+    },
+    {
+      key: 'escolher',
+      label: 'Cliente escolhe o barbeiro',
+      desc: 'Se desligado, o sistema distribui',
+    },
+    {
+      key: 'produtos',
+      label: 'Vitrine de produtos',
+      desc: 'Lista os produtos à venda no balcão',
+    },
   ];
 
   function copyLink() {
@@ -39,7 +60,9 @@ export default function SitePage() {
             <code className={styles.linkCode}>{publicBookingUrl}</code>
             <Button onClick={copyLink}>Copiar link</Button>
           </div>
-          <p className={styles.hint}>Cole na bio do Instagram e no WhatsApp Business.</p>
+          <p className={styles.hint}>
+            Cole na bio do Instagram e no WhatsApp Business.
+          </p>
         </Card>
 
         <Card>
@@ -51,7 +74,11 @@ export default function SitePage() {
                   <span className={styles.switchLabel}>{s.label}</span>
                   <span className={styles.switchDesc}>{s.desc}</span>
                 </div>
-                <Switch checked={site[s.key]} onChange={() => toggleSiteSetting(s.key)} label={s.label} />
+                <Switch
+                  checked={site[s.key]}
+                  onChange={() => toggleSiteSetting(s.key)}
+                  label={s.label}
+                />
               </div>
             ))}
           </div>
@@ -61,12 +88,17 @@ export default function SitePage() {
       <div className={styles.phoneFrame}>
         <div className={styles.phoneScreen}>
           {!site.online ? (
-            <div className={styles.phoneOffline}>Agendamento online pausado. {shop.phone ? `Ligue ${shop.phone}.` : 'Ligue para a barbearia.'}</div>
+            <div className={styles.phoneOffline}>
+              Agendamento online pausado.{' '}
+              {shop.phone ? `Ligue ${shop.phone}.` : 'Ligue para a barbearia.'}
+            </div>
           ) : (
             <>
               <div className={`${styles.phoneHeader} stripes`}>
                 <div className={styles.phoneShopName}>{shop.name}</div>
-                {shop.address ? <div className={styles.phoneAddress}>{shop.address}</div> : null}
+                {shop.address ? (
+                  <div className={styles.phoneAddress}>{shop.address}</div>
+                ) : null}
               </div>
               <div className={styles.phoneBody}>
                 <div>
@@ -74,14 +106,20 @@ export default function SitePage() {
                   {activeServices.map((s) => (
                     <div key={s.id} className={styles.phoneServiceRow}>
                       <span>{s.name}</span>
-                      {site.precos ? <span className={styles.phonePrice}>{brl(s.price)}</span> : null}
+                      {site.precos ? (
+                        <span className={styles.phonePrice}>
+                          {brl(s.price)}
+                        </span>
+                      ) : null}
                     </div>
                   ))}
                 </div>
 
                 {site.escolher ? (
                   <div>
-                    <div className={styles.phoneSectionTitle}>Escolha o barbeiro</div>
+                    <div className={styles.phoneSectionTitle}>
+                      Escolha o barbeiro
+                    </div>
                     <div className={styles.phoneAvatars}>
                       {[1, 2, 3, 4].map((n) => (
                         <span key={n} className={styles.phoneAvatar}>

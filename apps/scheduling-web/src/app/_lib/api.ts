@@ -23,7 +23,10 @@ export type ApiOptions = {
   token?: string | null;
 };
 
-export async function apiRequest<T>(path: string, { method = 'GET', body, token }: ApiOptions = {}): Promise<T> {
+export async function apiRequest<T>(
+  path: string,
+  { method = 'GET', body, token }: ApiOptions = {},
+): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`/api${path}`, {
@@ -36,18 +39,29 @@ export async function apiRequest<T>(path: string, { method = 'GET', body, token 
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
-    throw new ApiError(0, 'network', 'Não foi possível conectar ao servidor. Tente novamente.');
+    throw new ApiError(
+      0,
+      'network',
+      'Não foi possível conectar ao servidor. Tente novamente.',
+    );
   }
 
   if (res.status === 204) return undefined as T;
   const data = (await res.json().catch(() => null)) as
-    | { message?: string; code?: string; issues?: ApiIssue[] }
-    | T
-    | null;
+    { message?: string; code?: string; issues?: ApiIssue[] } | T | null;
 
   if (!res.ok) {
-    const err = (data ?? {}) as { message?: string; code?: string; issues?: ApiIssue[] };
-    throw new ApiError(res.status, err.code, err.issues?.[0]?.message ?? err.message ?? 'Algo deu errado.', err.issues ?? []);
+    const err = (data ?? {}) as {
+      message?: string;
+      code?: string;
+      issues?: ApiIssue[];
+    };
+    throw new ApiError(
+      res.status,
+      err.code,
+      err.issues?.[0]?.message ?? err.message ?? 'Algo deu errado.',
+      err.issues ?? [],
+    );
   }
   return data as T;
 }

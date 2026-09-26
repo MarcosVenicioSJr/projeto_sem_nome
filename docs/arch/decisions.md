@@ -375,6 +375,7 @@ The same person may book at many companies with one email. This supersedes the
 username/OTP/`clubs` auth described in the older ADRs above.
 
 **Decision.**
+
 - `tenants` (`id`, `name`, unique `slug`) is the company.
 - `members` holds the tenant-bound accounts: `tenant_id` + `role`
   (`owner | employee`). A member belongs to exactly one tenant and the email is
@@ -414,17 +415,18 @@ deleted; ADR-001…ADR-016 keep their historical context but the username/OTP/
 `clubs` auth they describe was already superseded by ADR-017.
 
 **Decision.**
+
 - **Client accounts removed.** `clients` and `tenant_clients`, `POST /auth/client/*`
   and `POST /t/:slug/clients/join` are gone; the `client` role no longer exists and
   every token carries a `tenantId`. An appointment stores `client_name` /
   `client_phone` directly.
-- **Generic "professional".** The API says *professional*, not barber, because the
+- **Generic "professional".** The API says _professional_, not barber, because the
   system serves other kinds of services. Any `members` row can provide services
   (a solo owner too). Tables: `professional_services` (price and duration per
   professional and service), `professional_schedules` (weekly hours; no row =
   day off), `professional_time_off` (blocks on a date).
 - **New role `manager`**, same permissions as `owner` for now (`@Roles('owner',
-  'manager')`); an `employee` acts only on their own agenda/services/schedule.
+'manager')`); an `employee` acts only on their own agenda/services/schedule.
   `POST /members/employees` accepts `role: 'employee' | 'manager'`.
 - **Services** are just a name; price/duration are per professional. An
   appointment freezes them per service (`appointment_services`) so later price

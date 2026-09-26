@@ -23,7 +23,12 @@ export function Header({ isMobile }: { isMobile: boolean }) {
         <p className={styles.subtitle}>{overrideSubtitle ?? mod?.sub ?? ''}</p>
       </div>
       <div className={styles.actions}>
-        <button type="button" className={styles.themeBtn} onClick={toggleTheme} aria-label={themeLabel}>
+        <button
+          type="button"
+          className={styles.themeBtn}
+          onClick={toggleTheme}
+          aria-label={themeLabel}
+        >
           <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
         </button>
         {isMobile ? <Avatar initials={ownerInitials} size={36} /> : null}

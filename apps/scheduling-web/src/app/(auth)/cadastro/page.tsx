@@ -23,7 +23,14 @@ function slugify(value: string): string {
 export default function CadastroPage() {
   const router = useRouter();
   const { status, register } = useSession();
-  const [form, setForm] = useState({ company: '', slug: '', name: '', email: '', phone: '', password: '' });
+  const [form, setForm] = useState({
+    company: '',
+    slug: '',
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+  });
   const [slugTouched, setSlugTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,7 +47,9 @@ export default function CadastroPage() {
     }));
   }
 
-  const valid = Object.values(form).every((v) => v.trim().length > 0) && form.phone.length === 11;
+  const valid =
+    Object.values(form).every((v) => v.trim().length > 0) &&
+    form.phone.length === 11;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -49,11 +58,20 @@ export default function CadastroPage() {
     try {
       await register({
         tenant: { name: form.company.trim(), slug: form.slug },
-        owner: { name: form.name.trim(), email: form.email.trim(), phone: form.phone, password: form.password },
+        owner: {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone,
+          password: form.password,
+        },
       });
       router.replace('/admin/dashboard');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível criar a conta.');
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'Não foi possível criar a conta.',
+      );
     } finally {
       setBusy(false);
     }
@@ -63,14 +81,24 @@ export default function CadastroPage() {
     <>
       <div>
         <h1 className={styles.title}>Cadastre sua empresa</h1>
-        <p className={styles.sub}>Você será o dono e poderá convidar sua equipe depois.</p>
+        <p className={styles.sub}>
+          Você será o dono e poderá convidar sua equipe depois.
+        </p>
       </div>
       <form className={styles.form} onSubmit={handleSubmit}>
         <span className={styles.section}>Empresa</span>
         <Field label="Nome da empresa">
-          <Input required value={form.company} onChange={(e) => set('company', e.target.value)} placeholder="Ex.: Navalha de Ouro" />
+          <Input
+            required
+            value={form.company}
+            onChange={(e) => set('company', e.target.value)}
+            placeholder="Ex.: Navalha de Ouro"
+          />
         </Field>
-        <Field label="Endereço da página" hint={`Seus clientes agendam em /t/${form.slug || 'sua-empresa'}`}>
+        <Field
+          label="Endereço da página"
+          hint={`Seus clientes agendam em /t/${form.slug || 'sua-empresa'}`}
+        >
           <Input
             required
             value={form.slug}
@@ -83,11 +111,22 @@ export default function CadastroPage() {
 
         <span className={styles.section}>Você</span>
         <Field label="Seu nome">
-          <Input required autoComplete="name" value={form.name} onChange={(e) => set('name', e.target.value)} />
+          <Input
+            required
+            autoComplete="name"
+            value={form.name}
+            onChange={(e) => set('name', e.target.value)}
+          />
         </Field>
         <div className={styles.row}>
           <Field label="E-mail">
-            <Input type="email" required autoComplete="email" value={form.email} onChange={(e) => set('email', e.target.value)} />
+            <Input
+              type="email"
+              required
+              autoComplete="email"
+              value={form.email}
+              onChange={(e) => set('email', e.target.value)}
+            />
           </Field>
           <Field label="Telefone (com DDD)">
             <Input
@@ -95,12 +134,17 @@ export default function CadastroPage() {
               required
               autoComplete="tel"
               value={form.phone}
-              onChange={(e) => set('phone', e.target.value.replace(/\D/g, '').slice(0, 11))}
+              onChange={(e) =>
+                set('phone', e.target.value.replace(/\D/g, '').slice(0, 11))
+              }
               placeholder="11987654321"
             />
           </Field>
         </div>
-        <Field label="Senha" hint="Mínimo de 8 caracteres, com maiúscula, minúscula e número">
+        <Field
+          label="Senha"
+          hint="Mínimo de 8 caracteres, com maiúscula, minúscula e número"
+        >
           <Input
             type="password"
             required

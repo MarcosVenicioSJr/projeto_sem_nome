@@ -21,10 +21,7 @@ export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
   @Post()
-  create(
-    @TenantId() tenantId: string,
-    @Body() dto: CreateEmployeeDto,
-  ) {
+  create(@TenantId() tenantId: string, @Body() dto: CreateEmployeeDto) {
     return this.memberService.createEmployee(tenantId, dto);
   }
 

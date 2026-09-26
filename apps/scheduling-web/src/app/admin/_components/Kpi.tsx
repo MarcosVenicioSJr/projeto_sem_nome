@@ -19,7 +19,10 @@ export function Kpi({
       <span className={`${styles.value} tabularNums`}>{value}</span>
       {progressPct != null ? (
         <div className={`${styles.bar} stripes`}>
-          <div className={styles.barFill} style={{ width: Math.max(0, Math.min(100, progressPct)) + '%' }} />
+          <div
+            className={styles.barFill}
+            style={{ width: Math.max(0, Math.min(100, progressPct)) + '%' }}
+          />
         </div>
       ) : null}
       {sub ? <span className={styles.sub}>{sub}</span> : null}

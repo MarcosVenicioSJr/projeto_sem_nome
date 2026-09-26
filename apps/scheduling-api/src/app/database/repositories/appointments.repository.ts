@@ -92,9 +92,12 @@ export class AppointmentsRepository {
       .leftJoinAndSelect('a.services', 's')
       .where('a.tenant_id = :tenantId', { tenantId })
       .andWhere('a.start_at >= :from AND a.start_at < :to', { from, to })
-      .andWhere(professionalId ? 'a.professional_id = :professionalId' : '1=1', {
-        professionalId,
-      })
+      .andWhere(
+        professionalId ? 'a.professional_id = :professionalId' : '1=1',
+        {
+          professionalId,
+        },
+      )
       .orderBy('a.start_at', 'ASC')
       .getMany();
   }

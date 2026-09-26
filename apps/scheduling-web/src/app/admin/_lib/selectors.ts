@@ -31,8 +31,14 @@ export function decorateAppointment(
   };
 }
 
-export function decorateAll(appts: Appointment[], services: Service[], barbers: Barber[]): DecoratedAppointment[] {
-  return appts.map((a) => decorateAppointment(a, services, barbers)).filter((a): a is DecoratedAppointment => a != null);
+export function decorateAll(
+  appts: Appointment[],
+  services: Service[],
+  barbers: Barber[],
+): DecoratedAppointment[] {
+  return appts
+    .map((a) => decorateAppointment(a, services, barbers))
+    .filter((a): a is DecoratedAppointment => a != null);
 }
 
 /** Receita representativa por dia da semana, usada só para preencher o
@@ -47,9 +53,15 @@ export type BarberLiveState = {
 };
 
 /** Estado ao vivo de um barbeiro (usado no Dashboard e em Equipe). */
-export function barberLiveState(barber: Barber, todayAppts: DecoratedAppointment[], nowMin: number): BarberLiveState {
+export function barberLiveState(
+  barber: Barber,
+  todayAppts: DecoratedAppointment[],
+  nowMin: number,
+): BarberLiveState {
   const mine = todayAppts.filter((a) => a.barberId === barber.id);
-  const current = mine.find((a) => a.start <= nowMin && a.end > nowMin && a.status === 'confirmed');
+  const current = mine.find(
+    (a) => a.start <= nowMin && a.end > nowMin && a.status === 'confirmed',
+  );
   if (current) return { state: 'Atendendo', busy: true, current };
   const onBreak = nowMin >= barber.brk[0] && nowMin < barber.brk[1];
   if (onBreak) return { state: 'Intervalo', busy: false };
@@ -57,8 +69,13 @@ export function barberLiveState(barber: Barber, todayAppts: DecoratedAppointment
 }
 
 /** Ocupação do dia (%) de um barbeiro, a partir dos agendamentos do dia. */
-export function barberOccupancyPct(barber: Barber, dayAppts: DecoratedAppointment[]): number {
-  const booked = dayAppts.filter((a) => a.barberId === barber.id).reduce((sum, a) => sum + (a.end - a.start), 0);
+export function barberOccupancyPct(
+  barber: Barber,
+  dayAppts: DecoratedAppointment[],
+): number {
+  const booked = dayAppts
+    .filter((a) => a.barberId === barber.id)
+    .reduce((sum, a) => sum + (a.end - a.start), 0);
   const work = barber.end - barber.start - (barber.brk[1] - barber.brk[0]);
   return work > 0 ? Math.round((booked / work) * 100) : 0;
 }

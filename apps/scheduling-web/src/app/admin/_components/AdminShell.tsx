@@ -20,10 +20,20 @@ export function AdminShell({ children }: { children: ReactNode }) {
         {!isMobile ? <Sidebar full={isDesktop} /> : null}
         <div className={styles.content}>
           <Header isMobile={isMobile} />
-          <main className={[styles.main, isMobile ? styles.mainMobile : ''].join(' ')}>{children}</main>
+          <main
+            className={[styles.main, isMobile ? styles.mainMobile : ''].join(
+              ' ',
+            )}
+          >
+            {children}
+          </main>
         </div>
-        {isMobile ? <BottomNav onMore={() => setMoreOpen(true)} moreOpen={moreOpen} /> : null}
-        {isMobile ? <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} /> : null}
+        {isMobile ? (
+          <BottomNav onMore={() => setMoreOpen(true)} moreOpen={moreOpen} />
+        ) : null}
+        {isMobile ? (
+          <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+        ) : null}
         <Toast />
       </div>
     </PageHeaderProvider>

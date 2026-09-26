@@ -18,9 +18,9 @@ describe('RolesGuard', () => {
   const guard = new RolesGuard(reflector);
 
   const requires = (roles: string[] | undefined) =>
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation((key) =>
-      key === ROLES_KEY ? roles : undefined,
-    );
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockImplementation((key) => (key === ROLES_KEY ? roles : undefined));
 
   it('allows any authenticated role when no @Roles is set', () => {
     requires(undefined);

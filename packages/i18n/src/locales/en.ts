@@ -49,14 +49,17 @@ export const en: Catalog = {
   'errors.member.notFound': 'Member not found',
   'errors.user.notFound': 'User not found',
   'errors.service.notFound': 'Service not found',
-  'errors.service.inUse': 'Service is used by appointments and cannot be deleted',
+  'errors.service.inUse':
+    'Service is used by appointments and cannot be deleted',
   'errors.agenda.notFound': 'Appointment not found',
   'errors.agenda.professionalNotFound': 'Professional not found',
-  'errors.agenda.serviceNotOffered': 'This professional does not offer that service',
+  'errors.agenda.serviceNotOffered':
+    'This professional does not offer that service',
   'errors.agenda.leadTime': 'Appointments need at least 1 hour of notice',
   'errors.agenda.slotUnavailable': 'That time is not available',
   'errors.agenda.dailyLimit': 'Daily appointment limit reached for this phone',
-  'errors.agenda.cancelWindowClosed': 'It is too late to cancel online; contact the establishment',
+  'errors.agenda.cancelWindowClosed':
+    'It is too late to cancel online; contact the establishment',
   'errors.agenda.notConfirmed': 'This appointment is no longer active',
   'errors.expense.notFound': 'Expense not found',
   'errors.stock.notFound': 'Stock item not found',

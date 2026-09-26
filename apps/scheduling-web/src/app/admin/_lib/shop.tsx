@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useSession } from '../../_lib/session';
 import { initials } from './format';
 
@@ -19,9 +26,14 @@ export type ShopConfig = {
   owner: { name: string; email: string };
 };
 
-export const PUBLIC_BOOKING_BASE_URL = process.env.NEXT_PUBLIC_PUBLIC_BOOKING_URL ?? 'https://barberadmin.app';
+export const PUBLIC_BOOKING_BASE_URL =
+  process.env.NEXT_PUBLIC_PUBLIC_BOOKING_URL ?? 'https://barberadmin.app';
 
-export const ROLE_LABEL = { owner: 'Dono', manager: 'Gerente', employee: 'Profissional' } as const;
+export const ROLE_LABEL = {
+  owner: 'Dono',
+  manager: 'Gerente',
+  employee: 'Profissional',
+} as const;
 
 type ShopContextValue = {
   shop: ShopConfig;
@@ -36,9 +48,12 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const { me, tenant } = useSession();
   const [local, setLocal] = useState<Partial<Omit<ShopConfig, 'owner'>>>({});
 
-  const updateShop = useCallback((patch: Partial<Omit<ShopConfig, 'owner'>>) => {
-    setLocal((prev) => ({ ...prev, ...patch }));
-  }, []);
+  const updateShop = useCallback(
+    (patch: Partial<Omit<ShopConfig, 'owner'>>) => {
+      setLocal((prev) => ({ ...prev, ...patch }));
+    },
+    [],
+  );
 
   const shop = useMemo<ShopConfig>(
     () => ({

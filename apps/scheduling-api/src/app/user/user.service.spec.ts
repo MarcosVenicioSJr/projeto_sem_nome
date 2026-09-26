@@ -18,7 +18,11 @@ describe('UserService', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  const members = { findById: jest.fn(), existsByEmail: jest.fn(), update: jest.fn() };
+  const members = {
+    findById: jest.fn(),
+    existsByEmail: jest.fn(),
+    update: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.resetAllMocks();
@@ -35,8 +39,17 @@ describe('UserService', () => {
   it.each(['owner', 'manager', 'employee'] as const)(
     'findMe() reads the members table for a %s token',
     async (role) => {
-      members.findById.mockResolvedValue({ ...account, tenantId: TENANT_ID, role });
-      const me = await service.findMe({ sub: ID, name: 'A B', role, tenantId: TENANT_ID });
+      members.findById.mockResolvedValue({
+        ...account,
+        tenantId: TENANT_ID,
+        role,
+      });
+      const me = await service.findMe({
+        sub: ID,
+        name: 'A B',
+        role,
+        tenantId: TENANT_ID,
+      });
       expect(me).toMatchObject({ role, tenantId: TENANT_ID });
       expect(me).not.toHaveProperty('passwordHash');
     },
@@ -45,7 +58,12 @@ describe('UserService', () => {
   it('findMe() is a 404 when the account no longer exists', async () => {
     members.findById.mockResolvedValue(null);
     await expect(
-      service.findMe({ sub: ID, name: 'A B', role: 'owner', tenantId: TENANT_ID }),
+      service.findMe({
+        sub: ID,
+        name: 'A B',
+        role: 'owner',
+        tenantId: TENANT_ID,
+      }),
     ).rejects.toMatchObject({ key: 'errors.user.notFound' });
   });
 });

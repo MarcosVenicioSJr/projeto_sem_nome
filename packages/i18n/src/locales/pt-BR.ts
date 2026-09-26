@@ -48,14 +48,19 @@ export const ptBR: Catalog = {
   'errors.member.notFound': 'Funcionário não encontrado',
   'errors.user.notFound': 'Usuário não encontrado',
   'errors.service.notFound': 'Serviço não encontrado',
-  'errors.service.inUse': 'O serviço está em uso por agendamentos e não pode ser excluído',
+  'errors.service.inUse':
+    'O serviço está em uso por agendamentos e não pode ser excluído',
   'errors.agenda.notFound': 'Agendamento não encontrado',
   'errors.agenda.professionalNotFound': 'Profissional não encontrado',
-  'errors.agenda.serviceNotOffered': 'Este profissional não realiza esse serviço',
-  'errors.agenda.leadTime': 'É preciso agendar com pelo menos 1 hora de antecedência',
+  'errors.agenda.serviceNotOffered':
+    'Este profissional não realiza esse serviço',
+  'errors.agenda.leadTime':
+    'É preciso agendar com pelo menos 1 hora de antecedência',
   'errors.agenda.slotUnavailable': 'Esse horário não está disponível',
-  'errors.agenda.dailyLimit': 'Limite diário de agendamentos atingido para este telefone',
-  'errors.agenda.cancelWindowClosed': 'Tarde demais para cancelar online; fale com o estabelecimento',
+  'errors.agenda.dailyLimit':
+    'Limite diário de agendamentos atingido para este telefone',
+  'errors.agenda.cancelWindowClosed':
+    'Tarde demais para cancelar online; fale com o estabelecimento',
   'errors.agenda.notConfirmed': 'Este agendamento não está mais ativo',
   'errors.expense.notFound': 'Despesa não encontrada',
   'errors.stock.notFound': 'Item de estoque não encontrado',

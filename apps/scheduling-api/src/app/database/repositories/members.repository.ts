@@ -34,14 +34,23 @@ export class MembersRepository {
 
   listEmployees(tenantId: string): Promise<MemberEntity[]> {
     return this.repo.find({
-      where: { tenantId, role: In([MEMBER_ROLE.EMPLOYEE, MEMBER_ROLE.MANAGER]) },
+      where: {
+        tenantId,
+        role: In([MEMBER_ROLE.EMPLOYEE, MEMBER_ROLE.MANAGER]),
+      },
       order: { name: 'ASC' },
     });
   }
 
   /** Scoped to the tenant so an owner can never reach another tenant's employee. */
   findEmployee(tenantId: string, id: string): Promise<MemberEntity | null> {
-    return this.repo.findOne({ where: { id, tenantId, role: In([MEMBER_ROLE.EMPLOYEE, MEMBER_ROLE.MANAGER]) } });
+    return this.repo.findOne({
+      where: {
+        id,
+        tenantId,
+        role: In([MEMBER_ROLE.EMPLOYEE, MEMBER_ROLE.MANAGER]),
+      },
+    });
   }
 
   /** Everyone in the tenant, owner included. */

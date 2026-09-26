@@ -6,13 +6,20 @@ import { Icon } from '../_lib/icons';
 import { BOTTOM_NAV_IDS, MODULES, moduleForPath } from '../_lib/nav';
 import styles from './BottomNav.module.css';
 
-export function BottomNav({ onMore, moreOpen }: { onMore: () => void; moreOpen: boolean }) {
+export function BottomNav({
+  onMore,
+  moreOpen,
+}: {
+  onMore: () => void;
+  moreOpen: boolean;
+}) {
   const pathname = usePathname();
   const current = moduleForPath(pathname);
-  const items = BOTTOM_NAV_IDS.map((id) => MODULES.find((m) => m.id === id)).filter(
-    (m): m is (typeof MODULES)[number] => m != null
-  );
-  const moreActive = moreOpen || !!(current && !BOTTOM_NAV_IDS.includes(current.id));
+  const items = BOTTOM_NAV_IDS.map((id) =>
+    MODULES.find((m) => m.id === id),
+  ).filter((m): m is (typeof MODULES)[number] => m != null);
+  const moreActive =
+    moreOpen || !!(current && !BOTTOM_NAV_IDS.includes(current.id));
 
   return (
     <nav className={styles.nav} aria-label="Navegação">
@@ -27,7 +34,12 @@ export function BottomNav({ onMore, moreOpen }: { onMore: () => void; moreOpen: 
           >
             <Icon name={item.icon} size={20} />
             <span>{item.short}</span>
-            <span className={[styles.indicator, active ? styles.indicatorOn : ''].join(' ')} />
+            <span
+              className={[
+                styles.indicator,
+                active ? styles.indicatorOn : '',
+              ].join(' ')}
+            />
           </Link>
         );
       })}
@@ -40,7 +52,12 @@ export function BottomNav({ onMore, moreOpen }: { onMore: () => void; moreOpen: 
       >
         <Icon name="more" size={20} />
         <span>Mais</span>
-        <span className={[styles.indicator, moreActive ? styles.indicatorOn : ''].join(' ')} />
+        <span
+          className={[
+            styles.indicator,
+            moreActive ? styles.indicatorOn : '',
+          ].join(' ')}
+        />
       </button>
     </nav>
   );

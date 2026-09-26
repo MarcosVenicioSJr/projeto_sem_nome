@@ -53,22 +53,34 @@ export class FinanceController {
   }
 
   @Get('commissions')
-  commissions(@TenantId() tenantId: string, @Query() { date }: CommissionsQueryDto) {
+  commissions(
+    @TenantId() tenantId: string,
+    @Query() { date }: CommissionsQueryDto,
+  ) {
     return this.finance.commissions(tenantId, date);
   }
 
   @Get('revenues')
-  revenues(@TenantId() tenantId: string, @Query() { date }: CommissionsQueryDto) {
+  revenues(
+    @TenantId() tenantId: string,
+    @Query() { date }: CommissionsQueryDto,
+  ) {
     return this.finance.revenues(tenantId, date);
   }
 
   @Get('reports/revenue')
-  revenue(@TenantId() tenantId: string, @Query() { month }: MonthlyReportQueryDto) {
+  revenue(
+    @TenantId() tenantId: string,
+    @Query() { month }: MonthlyReportQueryDto,
+  ) {
     return this.finance.monthlyRevenue(tenantId, month);
   }
 
   @Get('reports/clients')
-  clients(@TenantId() tenantId: string, @Query() { month }: MonthlyReportQueryDto) {
+  clients(
+    @TenantId() tenantId: string,
+    @Query() { month }: MonthlyReportQueryDto,
+  ) {
     return this.finance.monthlyClients(tenantId, month);
   }
 }

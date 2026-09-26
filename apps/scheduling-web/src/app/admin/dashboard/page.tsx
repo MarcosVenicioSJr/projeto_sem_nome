@@ -12,18 +12,44 @@ import { useAdminData } from '../_lib/data';
 import { useShop } from '../_lib/shop';
 import { useNow } from '../_lib/use-now';
 import { decorateAll, WEEKDAY_REVENUE_DEMO } from '../_lib/selectors';
-import { brl, brl0, dateForOffset, firstName, greetingFor, hm, longDayLabel, nowMinutes, WEEKDAYS_SHORT } from '../_lib/format';
+import {
+  brl,
+  brl0,
+  dateForOffset,
+  firstName,
+  greetingFor,
+  hm,
+  longDayLabel,
+  nowMinutes,
+  WEEKDAYS_SHORT,
+} from '../_lib/format';
 import { AVERAGE_TICKET_MONTH } from '../_lib/mock-data';
 import styles from './page.module.css';
 
 export default function DashboardPage() {
-  const { barbers, services, appointments, stock, remindersSent, sendPendingReminders, showToast } = useAdminData();
+  const {
+    barbers,
+    services,
+    appointments,
+    stock,
+    remindersSent,
+    sendPendingReminders,
+    showToast,
+  } = useAdminData();
   const { shop } = useShop();
   const router = useRouter();
   const now = useNow();
   const nowMin = nowMinutes(now);
 
-  const today = useMemo(() => decorateAll(appointments.filter((a) => a.date === 0), services, barbers), [appointments, services, barbers]);
+  const today = useMemo(
+    () =>
+      decorateAll(
+        appointments.filter((a) => a.date === 0),
+        services,
+        barbers,
+      ),
+    [appointments, services, barbers],
+  );
   const doneToday = today.filter((a) => a.status === 'done');
   const realized = doneToday.reduce((sum, a) => sum + a.service.price, 0);
   const forecast = today.reduce((sum, a) => sum + a.service.price, 0);
@@ -50,45 +76,71 @@ export default function DashboardPage() {
 
   const chairs = barbers.map((barber) => {
     const mine = today.filter((a) => a.barberId === barber.id);
-    const current = mine.find((a) => a.start <= nowMin && a.end > nowMin && a.status === 'confirmed');
+    const current = mine.find(
+      (a) => a.start <= nowMin && a.end > nowMin && a.status === 'confirmed',
+    );
     const onBreak = nowMin >= barber.brk[0] && nowMin < barber.brk[1];
-    const next = mine.filter((a) => a.start > nowMin && a.status !== 'done').sort((a, b) => a.start - b.start)[0];
+    const next = mine
+      .filter((a) => a.start > nowMin && a.status !== 'done')
+      .sort((a, b) => a.start - b.start)[0];
 
     let state: 'Atendendo' | 'Intervalo' | 'Livre' = 'Livre';
     let line = 'Cadeira livre';
-    let sub = next ? `próximo às ${next.timeLabel} · ${firstName(next.clientName)}` : 'sem próximos hoje';
+    let sub = next
+      ? `próximo às ${next.timeLabel} · ${firstName(next.clientName)}`
+      : 'sem próximos hoje';
     let progressPct: number | null = null;
 
     if (current) {
       state = 'Atendendo';
       line = current.clientName;
       sub = `${current.service.name} · termina ${hm(current.end)}`;
-      progressPct = Math.min(100, ((nowMin - current.start) / (current.end - current.start)) * 100);
+      progressPct = Math.min(
+        100,
+        ((nowMin - current.start) / (current.end - current.start)) * 100,
+      );
     } else if (onBreak) {
       state = 'Intervalo';
       line = 'Intervalo';
       sub = `volta às ${hm(barber.brk[1])}`;
     }
 
-    return { barber, state, line, sub, progressPct, busy: state === 'Atendendo' };
+    return {
+      barber,
+      state,
+      line,
+      sub,
+      progressPct,
+      busy: state === 'Atendendo',
+    };
   });
 
   const lowStock = stock.filter((item) => item.qty < item.min);
-  const alerts: Array<{ icon: 'msg' | 'alert'; title: string; text: string; action: string; run: () => void }> = [];
+  const alerts: Array<{
+    icon: 'msg' | 'alert';
+    title: string;
+    text: string;
+    action: string;
+    run: () => void;
+  }> = [];
   if (pendingToday.length) {
     alerts.push({
       icon: 'msg',
       title: `${pendingToday.length} agendamentos aguardando confirmação`,
       text: remindersSent
         ? `Lembretes enviados por WhatsApp às ${hm(nowMin)}.`
-        : pendingToday.map((a) => `${a.timeLabel} ${firstName(a.clientName)}`).join(' · '),
+        : pendingToday
+            .map((a) => `${a.timeLabel} ${firstName(a.clientName)}`)
+            .join(' · '),
       action: remindersSent ? 'Ver na agenda' : 'Enviar lembretes',
       run: () => {
         if (remindersSent) {
           router.push('/admin/agenda');
         } else {
           sendPendingReminders();
-          showToast(`Lembretes enviados para ${pendingToday.length} clientes via WhatsApp`);
+          showToast(
+            `Lembretes enviados para ${pendingToday.length} clientes via WhatsApp`,
+          );
         }
       },
     });
@@ -113,7 +165,11 @@ export default function DashboardPage() {
     const weekday = day.getDay();
     const isToday = offset === 0;
     const closed = weekday === 0;
-    const value = isToday ? realized : closed ? 0 : WEEKDAY_REVENUE_DEMO[weekday];
+    const value = isToday
+      ? realized
+      : closed
+        ? 0
+        : WEEKDAY_REVENUE_DEMO[weekday];
     const max = Math.max(...WEEKDAY_REVENUE_DEMO, realized, 1);
     return {
       label: WEEKDAYS_SHORT[weekday],
@@ -134,7 +190,10 @@ export default function DashboardPage() {
           <h2 className={styles.greeting}>{greeting}</h2>
           <p className={styles.dateLine}>{dateLine}</p>
         </div>
-        <Button variant="primary" onClick={() => router.push('/admin/agenda?new=1')}>
+        <Button
+          variant="primary"
+          onClick={() => router.push('/admin/agenda?new=1')}
+        >
           <Icon name="plus" size={16} /> Novo agendamento
         </Button>
       </div>
@@ -154,20 +213,30 @@ export default function DashboardPage() {
                 key={c.barber.id}
                 type="button"
                 className={styles.chairRow}
-                onClick={() => router.push(`/admin/agenda?barber=${c.barber.id}`)}
+                onClick={() =>
+                  router.push(`/admin/agenda?barber=${c.barber.id}`)
+                }
               >
                 <Avatar initials={c.barber.initials} size={28} />
                 <div className={styles.chairInfo}>
                   <div className={styles.chairNameRow}>
                     <span className={styles.chairName}>{c.barber.short}</span>
-                    <span className={styles.dot} style={{ background: c.busy ? 'var(--accent)' : 'var(--faint)' }} />
+                    <span
+                      className={styles.dot}
+                      style={{
+                        background: c.busy ? 'var(--accent)' : 'var(--faint)',
+                      }}
+                    />
                     <span className={styles.chairState}>{c.state}</span>
                   </div>
                   <span className={styles.chairLine}>{c.line}</span>
                   <span className={styles.chairSub}>{c.sub}</span>
                   {c.progressPct != null ? (
                     <div className={styles.progress}>
-                      <div className={styles.progressFill} style={{ width: c.progressPct + '%' }} />
+                      <div
+                        className={styles.progressFill}
+                        style={{ width: c.progressPct + '%' }}
+                      />
                     </div>
                   ) : null}
                 </div>
@@ -182,7 +251,11 @@ export default function DashboardPage() {
             <div className={styles.alertList}>
               {alerts.map((alert) => (
                 <div key={alert.title} className={styles.alertRow}>
-                  <Icon name={alert.icon} size={18} className={styles.alertIcon} />
+                  <Icon
+                    name={alert.icon}
+                    size={18}
+                    className={styles.alertIcon}
+                  />
                   <div className={styles.alertBody}>
                     <span className={styles.alertTitle}>{alert.title}</span>
                     <span className={styles.alertText}>{alert.text}</span>
@@ -203,7 +276,11 @@ export default function DashboardPage() {
           {upcoming.length ? (
             <div>
               {upcoming.map((a) => (
-                <Link key={a.id} href="/admin/agenda" className={styles.upcomingRow}>
+                <Link
+                  key={a.id}
+                  href="/admin/agenda"
+                  className={styles.upcomingRow}
+                >
                   <span className={styles.upcomingTime}>{a.timeLabel}</span>
                   <div className={styles.upcomingInfo}>
                     <span className={styles.upcomingClient}>
@@ -215,7 +292,9 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className={styles.emptyState}>Nenhum atendimento a seguir hoje.</p>
+            <p className={styles.emptyState}>
+              Nenhum atendimento a seguir hoje.
+            </p>
           )}
         </Card>
 
@@ -224,15 +303,26 @@ export default function DashboardPage() {
           <div className={styles.weekChart}>
             {week.map((day, i) => (
               <div key={i} className={styles.weekBarWrap}>
-                <span className={styles.weekValue}>{day.closed ? '' : brl0(day.value)}</span>
+                <span className={styles.weekValue}>
+                  {day.closed ? '' : brl0(day.value)}
+                </span>
                 <div
-                  className={[styles.weekBar, day.closed ? 'stripes' : ''].join(' ')}
+                  className={[styles.weekBar, day.closed ? 'stripes' : ''].join(
+                    ' ',
+                  )}
                   style={{
                     height: day.heightPct + '%',
-                    background: day.closed ? undefined : day.isToday ? 'var(--accent-bg)' : 'var(--surface-3)',
+                    background: day.closed
+                      ? undefined
+                      : day.isToday
+                        ? 'var(--accent-bg)'
+                        : 'var(--surface-3)',
                   }}
                 />
-                <span className={styles.weekLabel} style={{ fontWeight: day.isToday ? 700 : 500 }}>
+                <span
+                  className={styles.weekLabel}
+                  style={{ fontWeight: day.isToday ? 700 : 500 }}
+                >
                   {day.closed ? 'Fechado' : day.label}
                 </span>
               </div>

@@ -33,7 +33,10 @@ export class ProfessionalAvailabilityRepository {
   replaceWeek(
     tenantId: string,
     professionalId: string,
-    days: Omit<ProfessionalScheduleEntity, 'id' | 'tenantId' | 'professionalId' | 'professional'>[],
+    days: Omit<
+      ProfessionalScheduleEntity,
+      'id' | 'tenantId' | 'professionalId' | 'professional'
+    >[],
   ): Promise<void> {
     return this.dataSource.transaction(async (manager) => {
       await manager.delete(ProfessionalScheduleEntity, { professionalId });

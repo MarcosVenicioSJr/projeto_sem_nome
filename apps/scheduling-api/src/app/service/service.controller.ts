@@ -102,6 +102,10 @@ export class ProfessionalServiceController {
     @CurrentUser() caller: AccessTokenPayload,
     @Param() { professionalId, serviceId }: ProfessionalServiceParamDto,
   ) {
-    return this.service.removeForProfessional(caller, professionalId, serviceId);
+    return this.service.removeForProfessional(
+      caller,
+      professionalId,
+      serviceId,
+    );
   }
 }

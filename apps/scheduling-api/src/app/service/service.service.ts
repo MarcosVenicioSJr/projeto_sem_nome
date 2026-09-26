@@ -57,7 +57,7 @@ export class ServiceService {
     try {
       await this.services.delete(tenantId, id);
     } catch (e) {
-      const code = (e as { code?: string; driverError?: { code?: string } });
+      const code = e as { code?: string; driverError?: { code?: string } };
       if ((code.code ?? code.driverError?.code) === '23503') {
         throw new AppException('errors.service.inUse', HttpStatus.CONFLICT);
       }
@@ -122,7 +122,10 @@ export class ServiceService {
     }
   }
 
-  private async findOrFail(tenantId: string, id: string): Promise<ServiceEntity> {
+  private async findOrFail(
+    tenantId: string,
+    id: string,
+  ): Promise<ServiceEntity> {
     const service = await this.services.find(tenantId, id);
     if (!service) {
       throw new AppException('errors.service.notFound', HttpStatus.NOT_FOUND);

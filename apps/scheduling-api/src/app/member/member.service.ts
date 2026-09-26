@@ -2,11 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { hash } from 'bcryptjs';
 import type { CreateEmployeeInput, UpdateEmployeeInput } from '@org/contracts';
 import { AppException } from '../common/app.exception';
-import {
-  MEMBER_ROLE,
-  MembersRepository,
-  type MemberEntity,
-} from '../database';
+import { MEMBER_ROLE, MembersRepository, type MemberEntity } from '../database';
 import { toMember } from '../user/user.mapper';
 
 const BCRYPT_ROUNDS = 12; // spec §4.2 (10–12)

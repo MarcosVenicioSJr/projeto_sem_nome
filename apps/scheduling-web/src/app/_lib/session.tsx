@@ -1,6 +1,15 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { AuthTokens, Member, Tenant } from '@org/contracts';
 import { ApiError, apiRequest, type ApiOptions } from './api';
 
@@ -82,7 +91,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setTenant(company);
       setStatus('authenticated');
       if (expiryTimer.current) clearTimeout(expiryTimer.current);
-      expiryTimer.current = setTimeout(clear, Math.max(stored.expiresAt - Date.now(), 0));
+      expiryTimer.current = setTimeout(
+        clear,
+        Math.max(stored.expiresAt - Date.now(), 0),
+      );
     },
     [clear],
   );
@@ -101,8 +113,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const tokens = await apiRequest<AuthTokens>('/auth/member/login', { method: 'POST', body: { email, password } });
-      await start({ token: tokens.accessToken, expiresAt: Date.now() + tokens.accessTokenExpiresInSeconds * 1000 });
+      const tokens = await apiRequest<AuthTokens>('/auth/member/login', {
+        method: 'POST',
+        body: { email, password },
+      });
+      await start({
+        token: tokens.accessToken,
+        expiresAt: Date.now() + tokens.accessTokenExpiresInSeconds * 1000,
+      });
     },
     [start],
   );
@@ -116,9 +134,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   const api = useCallback(
-    async <T,>(path: string, options: Omit<ApiOptions, 'token'> = {}): Promise<T> => {
+    async <T,>(
+      path: string,
+      options: Omit<ApiOptions, 'token'> = {},
+    ): Promise<T> => {
       try {
-        return await apiRequest<T>(path, { ...options, token: tokenRef.current });
+        return await apiRequest<T>(path, {
+          ...options,
+          token: tokenRef.current,
+        });
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) clear();
         throw e;
@@ -141,11 +165,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [status, me, tenant, login, register, clear, api],
   );
 
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  );
 }
 
 export function useSession(): SessionValue {
   const ctx = useContext(SessionContext);
-  if (!ctx) throw new Error('useSession deve ser usado dentro de <SessionProvider>');
+  if (!ctx)
+    throw new Error('useSession deve ser usado dentro de <SessionProvider>');
   return ctx;
 }

@@ -48,31 +48,68 @@ describe('computeFreeSlots', () => {
 });
 
 describe('freeSlotsForDay', () => {
-  const barber = { start: 480, end: 1140, brk: [735, 795] as [number, number], off: [0] };
+  const barber = {
+    start: 480,
+    end: 1140,
+    brk: [735, 795] as [number, number],
+    off: [0],
+  };
   const today = new Date(2026, 8, 23); // quarta-feira, 23/09/2026
 
   it('ignora o próprio agendamento ao remarcar', () => {
     const existing = [{ id: 'a1', start: 900, duration: 45 }];
-    const withoutSkip = freeSlotsForDay({ barber, existingAppointments: existing, duration: 45, dateOffset: 1, today });
-    const withSkip = freeSlotsForDay({ barber, existingAppointments: existing, duration: 45, dateOffset: 1, skipAppointmentId: 'a1', today });
+    const withoutSkip = freeSlotsForDay({
+      barber,
+      existingAppointments: existing,
+      duration: 45,
+      dateOffset: 1,
+      today,
+    });
+    const withSkip = freeSlotsForDay({
+      barber,
+      existingAppointments: existing,
+      duration: 45,
+      dateOffset: 1,
+      skipAppointmentId: 'a1',
+      today,
+    });
     expect(withoutSkip).not.toContain(900);
     expect(withSkip).toContain(900);
   });
 
   it('não libera horários em dias de folga do barbeiro (domingo)', () => {
     // 2026-09-27 é um domingo; barbeiro está de folga aos domingos (off: [0])
-    const slots = freeSlotsForDay({ barber, existingAppointments: [], duration: 30, dateOffset: 4, today });
+    const slots = freeSlotsForDay({
+      barber,
+      existingAppointments: [],
+      duration: 30,
+      dateOffset: 4,
+      today,
+    });
     expect(slots).toEqual([]);
   });
 
   it('não libera horários em dias passados', () => {
-    const slots = freeSlotsForDay({ barber, existingAppointments: [], duration: 30, dateOffset: -1, today });
+    const slots = freeSlotsForDay({
+      barber,
+      existingAppointments: [],
+      duration: 30,
+      dateOffset: -1,
+      today,
+    });
     expect(slots).toEqual([]);
   });
 
   it('no dia de hoje, respeita a folga mínima a partir de agora', () => {
     const now = new Date(2026, 8, 23, 14, 20); // 14:20
-    const slots = freeSlotsForDay({ barber, existingAppointments: [], duration: 30, dateOffset: 0, now, today });
+    const slots = freeSlotsForDay({
+      barber,
+      existingAppointments: [],
+      duration: 30,
+      dateOffset: 0,
+      now,
+      today,
+    });
     // 14:20 + 10min = 14:30 = 870min; o primeiro slot de 15 em 15 >= 870 é 870
     expect(slots[0]).toBeGreaterThanOrEqual(870);
   });

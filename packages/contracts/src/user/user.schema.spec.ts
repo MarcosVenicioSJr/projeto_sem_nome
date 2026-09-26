@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createAppointmentSchema, slotsQuerySchema } from '../agenda/agenda.schema.js';
+import {
+  createAppointmentSchema,
+  slotsQuerySchema,
+} from '../agenda/agenda.schema.js';
 import { loginSchema } from '../auth/login.schema.js';
 import {
   createEmployeeSchema,
@@ -25,22 +28,37 @@ describe('createEmployeeSchema', () => {
   });
 
   it('emits i18n keys, not prose, as issue messages', () => {
-    const result = createEmployeeSchema.safeParse({ ...validRegister, password: 'short' });
+    const result = createEmployeeSchema.safeParse({
+      ...validRegister,
+      password: 'short',
+    });
     expect(result.success).toBe(false);
-    const messages = (result.error?.issues ?? []).map((i: { message: string }) => i.message);
+    const messages = (result.error?.issues ?? []).map(
+      (i: { message: string }) => i.message,
+    );
     expect(messages).toContain('validation.password.minLength');
   });
 
   it('only lets an employee or a manager be created, never an owner', () => {
-    expect(createEmployeeSchema.safeParse({ ...validRegister, role: 'manager' }).success).toBe(true);
-    expect(createEmployeeSchema.safeParse({ ...validRegister, role: 'owner' }).success).toBe(false);
+    expect(
+      createEmployeeSchema.safeParse({ ...validRegister, role: 'manager' })
+        .success,
+    ).toBe(true);
+    expect(
+      createEmployeeSchema.safeParse({ ...validRegister, role: 'owner' })
+        .success,
+    ).toBe(false);
   });
 });
 
 describe('loginSchema', () => {
   it('uses email and only requires a non-empty password', () => {
-    expect(loginSchema.safeParse({ email: 'a@b.co', password: 'x' }).success).toBe(true);
-    expect(loginSchema.safeParse({ email: 'a@b.co', password: '' }).success).toBe(false);
+    expect(
+      loginSchema.safeParse({ email: 'a@b.co', password: 'x' }).success,
+    ).toBe(true);
+    expect(
+      loginSchema.safeParse({ email: 'a@b.co', password: '' }).success,
+    ).toBe(false);
   });
 });
 
@@ -59,9 +77,12 @@ describe('slugSchema', () => {
     expect(slugSchema.parse(' Clinica-Sorriso ')).toBe('clinica-sorriso');
   });
 
-  it.each(['ab', '-clinic', 'clinic-', 'cli nic', 'cli--nic'])('rejects %s', (bad) => {
-    expect(slugSchema.safeParse(bad).success).toBe(false);
-  });
+  it.each(['ab', '-clinic', 'clinic-', 'cli nic', 'cli--nic'])(
+    'rejects %s',
+    (bad) => {
+      expect(slugSchema.safeParse(bad).success).toBe(false);
+    },
+  );
 });
 
 describe('createTenantSchema', () => {
@@ -92,16 +113,21 @@ describe('passwordSchema', () => {
 describe('accessTokenPayloadSchema', () => {
   const base = { sub: '11111111-1111-4111-8111-111111111111', name: 'A B' };
 
-  it.each(['owner', 'manager', 'employee'])('requires tenantId for %s', (role) => {
-    expect(accessTokenPayloadSchema.safeParse({ ...base, role }).success).toBe(false);
-    expect(
-      accessTokenPayloadSchema.safeParse({
-        ...base,
-        role,
-        tenantId: '22222222-2222-4222-8222-222222222222',
-      }).success,
-    ).toBe(true);
-  });
+  it.each(['owner', 'manager', 'employee'])(
+    'requires tenantId for %s',
+    (role) => {
+      expect(
+        accessTokenPayloadSchema.safeParse({ ...base, role }).success,
+      ).toBe(false);
+      expect(
+        accessTokenPayloadSchema.safeParse({
+          ...base,
+          role,
+          tenantId: '22222222-2222-4222-8222-222222222222',
+        }).success,
+      ).toBe(true);
+    },
+  );
 
   it('has no client role: end customers have no account', () => {
     expect(
@@ -125,13 +151,26 @@ describe('meSchema', () => {
       updatedAt: '2026-01-01T00:00:00.000Z',
     };
     const tenantId = '22222222-2222-4222-8222-222222222222';
-    expect(meSchema.safeParse({ ...account, role: 'owner', tenantId }).success).toBe(true);
-    expect(meSchema.safeParse({ ...account, role: 'manager', tenantId }).success).toBe(true);
     expect(
-      meSchema.safeParse({ ...account, role: 'employee', tenantId, commissionRate: null }).success,
+      meSchema.safeParse({ ...account, role: 'owner', tenantId }).success,
     ).toBe(true);
-    expect(meSchema.safeParse({ ...account, role: 'owner' }).success).toBe(false);
-    expect(meSchema.safeParse({ ...account, role: 'client' }).success).toBe(false);
+    expect(
+      meSchema.safeParse({ ...account, role: 'manager', tenantId }).success,
+    ).toBe(true);
+    expect(
+      meSchema.safeParse({
+        ...account,
+        role: 'employee',
+        tenantId,
+        commissionRate: null,
+      }).success,
+    ).toBe(true);
+    expect(meSchema.safeParse({ ...account, role: 'owner' }).success).toBe(
+      false,
+    );
+    expect(meSchema.safeParse({ ...account, role: 'client' }).success).toBe(
+      false,
+    );
   });
 });
 
@@ -149,7 +188,9 @@ describe('createAppointmentSchema', () => {
   });
 
   it('requires at least one service', () => {
-    expect(createAppointmentSchema.safeParse({ ...body, serviceIds: [] }).success).toBe(false);
+    expect(
+      createAppointmentSchema.safeParse({ ...body, serviceIds: [] }).success,
+    ).toBe(false);
   });
 });
 

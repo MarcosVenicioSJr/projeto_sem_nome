@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
 type PageHeaderValue = {
   subtitle: string | null;
@@ -12,7 +19,11 @@ const PageHeaderContext = createContext<PageHeaderValue | null>(null);
 export function PageHeaderProvider({ children }: { children: ReactNode }) {
   const [subtitle, setSubtitle] = useState<string | null>(null);
   const value = useMemo(() => ({ subtitle, setSubtitle }), [subtitle]);
-  return <PageHeaderContext.Provider value={value}>{children}</PageHeaderContext.Provider>;
+  return (
+    <PageHeaderContext.Provider value={value}>
+      {children}
+    </PageHeaderContext.Provider>
+  );
 }
 
 export function useHeaderSubtitle(): string | null {
