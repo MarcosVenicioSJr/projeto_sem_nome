@@ -1,0 +1,101 @@
+/**
+ * Design tokens do portal administrativo (Barber Admin).
+ * Tema aplicado via `data-theme="dark"|"light"` no <html> (ver ThemeProvider).
+ * Padrão: escuro. Nenhum valor de cor/espaçamento deve ser usado "solto"
+ * fora destas variáveis.
+ */
+
+:root,
+:root[data-theme='dark'] {
+  --bg: #0d0c0a;
+  --surface: #15130f;
+  --surface-2: #1b1915;
+  --surface-3: #26231d;
+  --line: #2a2620;
+  --line-soft: #1d1b17;
+  --line-strong: #3b362d;
+  --text: #f1ece2;
+  --muted: #a69e8f;
+  --faint: #756e61;
+  --accent: #d4b06a;
+  --accent-strong: #e8c888;
+  --accent-bg: #c9a45c;
+  --accent-bg-hover: #d9b672;
+  --on-accent: #15110a;
+  --accent-soft: rgba(201, 164, 92, 0.14);
+  --accent-line: rgba(201, 164, 92, 0.5);
+  --stripe: rgba(201, 164, 92, 0.12);
+  --ok: #83c193;
+  --ok-soft: rgba(131, 193, 147, 0.14);
+  --danger: #e8877a;
+  --danger-soft: rgba(232, 135, 122, 0.14);
+  --overlay: rgba(0, 0, 0, 0.62);
+  --side-bg: #0a0908;
+  --side-line: #211e19;
+  --side-text: #ede7db;
+  --side-muted: #9a9282;
+  --side-hover: #17150f;
+  --side-active: #1e1b15;
+  --side-accent: #d4b06a;
+}
+
+:root[data-theme='light'] {
+  --bg: #f4f1ea;
+  --surface: #ffffff;
+  --surface-2: #f9f7f2;
+  --surface-3: #ece8df;
+  --line: #e3ded3;
+  --line-soft: #f0ece5;
+  --line-strong: #cbc4b5;
+  --text: #16140f;
+  --muted: #5f584c;
+  --faint: #8c8476;
+  --accent: #7e5d19;
+  --accent-strong: #5f4612;
+  --accent-bg: #16140f;
+  --accent-bg-hover: #2b2721;
+  --on-accent: #e3c27e;
+  --accent-soft: rgba(160, 120, 40, 0.12);
+  --accent-line: rgba(126, 93, 25, 0.45);
+  --stripe: rgba(126, 93, 25, 0.11);
+  --ok: #2c7443;
+  --ok-soft: rgba(44, 116, 67, 0.1);
+  --danger: #a93c2c;
+  --danger-soft: rgba(169, 60, 44, 0.09);
+  --overlay: rgba(22, 20, 15, 0.42);
+  --side-bg: #14120e;
+  --side-line: #27231d;
+  --side-text: #ede7db;
+  --side-muted: #a0988a;
+  --side-hover: #1d1a15;
+  --side-active: #26221b;
+  --side-accent: #d4b06a;
+}
+
+/* Assinatura visual "listra de navalha" — usar sempre com significado
+   (indisponibilidade, parte não realizada, dia fechado). */
+.stripes {
+  background-image: repeating-linear-gradient(135deg, var(--stripe) 0 6px, transparent 6px 12px);
+}
+.stripes-sm {
+  background-image: repeating-linear-gradient(135deg, var(--stripe) 0 3px, transparent 3px 7px);
+}
+.stripes-lg {
+  background-image: repeating-linear-gradient(135deg, var(--stripe) 0 8px, transparent 8px 16px);
+}
+
+.tabularNums {
+  font-variant-numeric: tabular-nums;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

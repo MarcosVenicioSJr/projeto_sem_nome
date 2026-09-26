@@ -1,0 +1,143 @@
+.sidebar {
+  background: var(--side-bg);
+  border-right: 1px solid var(--side-line);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+.full {
+  width: 248px;
+  padding: 20px 16px;
+}
+.rail {
+  width: 76px;
+  padding: 20px 10px;
+  overflow-x: hidden;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px 20px;
+}
+.full .top {
+  justify-content: flex-start;
+}
+.rail .top {
+  justify-content: center;
+}
+.logoPill {
+  width: 12px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--side-accent);
+  flex-shrink: 0;
+}
+.shopName {
+  color: var(--side-text);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.groups {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.groupLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--side-muted);
+  padding: 0 10px 6px;
+}
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--side-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+.rail .item {
+  justify-content: center;
+}
+.item:hover {
+  background: var(--side-hover);
+}
+.item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.active {
+  background: var(--side-active);
+  color: var(--side-text);
+}
+.active svg {
+  color: var(--side-accent);
+}
+.bar {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--side-accent);
+  opacity: 0;
+}
+.active .bar {
+  opacity: 1;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 6px 0;
+  border-top: 1px solid var(--side-line);
+  margin-top: 12px;
+}
+.footerText {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.footerName {
+  color: var(--side-text);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.footerRole {
+  color: var(--side-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,111 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.fullRow {
+  grid-column: 1 / -1;
+}
+.slugPrefix {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.slugPrefixLabel {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.error {
+  color: var(--danger);
+}
+
+.hoursRow {
+  display: grid;
+  grid-template-columns: 140px auto 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.hoursRow:last-child {
+  border-bottom: none;
+}
+.hoursDay {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  text-transform: capitalize;
+}
+.hoursRange {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+.timeInput {
+  width: 78px;
+}
+.closedLabel {
+  font-size: 13px;
+  color: var(--faint);
+}
+
+.ruleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+}
+.ruleText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ruleLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.ruleDesc {
+  font-size: 12px;
+  color: var(--muted);
+}
+.selectRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.userEmail {
+  font-size: 12px;
+  color: var(--muted);
+}
+.userNote {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 16px;
+}

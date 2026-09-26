@@ -1,0 +1,37 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.dialog {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+.dialog:focus-visible {
+  outline: none;
+}
+.header {
+  margin-bottom: 16px;
+}
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  font-stretch: 80%;
+  color: var(--text);
+}
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}

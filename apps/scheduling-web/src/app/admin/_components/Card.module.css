@@ -1,0 +1,21 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+}
+.interactive {
+  cursor: pointer;
+  transition: border-color 150ms;
+}
+.interactive:hover {
+  border-color: var(--accent-line);
+}
+.title {
+  margin: 0 0 12px;
+  font-family: var(--font-archivo, sans-serif);
+  font-size: 17px;
+  font-weight: 600;
+  font-stretch: 82%;
+  color: var(--text);
+}

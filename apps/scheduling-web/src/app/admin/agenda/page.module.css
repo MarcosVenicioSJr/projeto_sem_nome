@@ -1,0 +1,299 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.navBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.navBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.dateLabel {
+  font-family: var(--font-archivo, sans-serif);
+  font-size: 18px;
+  font-weight: 600;
+  font-stretch: 80%;
+  color: var(--text);
+}
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.chipsRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.gridWrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.gridInner {
+  display: grid;
+  min-width: max-content;
+}
+.headerCorner {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.columnHeader {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  padding: 10px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 168px;
+}
+.columnHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.columnHeaderName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.columnHeaderCount {
+  font-size: 11px;
+  color: var(--muted);
+}
+.hourRuler {
+  position: relative;
+  width: 56px;
+  flex-shrink: 0;
+}
+.hourLabel {
+  position: absolute;
+  left: 0;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--faint);
+  text-align: right;
+}
+.nowLabel {
+  position: absolute;
+  left: 4px;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--accent-bg);
+  color: var(--on-accent);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.hourLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--line);
+}
+.halfHourLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--line-soft);
+}
+.column {
+  position: relative;
+  border-left: 1px solid var(--line);
+  min-width: 168px;
+  cursor: pointer;
+}
+.unavailable {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6px;
+}
+.unavailableLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+.appt {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+}
+.apptName {
+  display: block;
+  font-weight: 600;
+}
+.apptSub {
+  display: block;
+  opacity: 0.85;
+}
+.apptConfirmed {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  color: var(--text);
+}
+.apptPending {
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  color: var(--text);
+}
+.apptDone {
+  background: var(--surface-3);
+  color: var(--muted);
+}
+.nowLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--accent);
+  z-index: 5;
+}
+.emptyDay {
+  padding: 40px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+}
+.closedCard {
+  padding: 24px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* drawer */
+.drawerBadgeRow {
+  margin-bottom: 12px;
+}
+.drawerTime {
+  font-family: var(--font-archivo, sans-serif);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+.drawerDate {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 2px 0 20px;
+}
+.drawerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.drawerField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.drawerLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.drawerValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.drawerActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.drawerActions > * {
+  width: 100%;
+  height: 44px;
+}
+
+/* dialog */
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.formCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.summary {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 4px 0 16px;
+}
+.alertBox {
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

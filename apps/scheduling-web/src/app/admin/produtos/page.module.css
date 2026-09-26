@@ -1,0 +1,9 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.low {
+  color: var(--danger);
+  font-weight: 600;
+}

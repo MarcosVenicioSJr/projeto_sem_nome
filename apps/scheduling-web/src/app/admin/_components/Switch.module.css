@@ -1,0 +1,32 @@
+.track {
+  width: 42px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 12px;
+  border: none;
+  background: var(--surface-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 180ms;
+  flex-shrink: 0;
+}
+.track:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.on {
+  background: var(--accent-bg);
+}
+.knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--muted);
+  display: block;
+  transition: transform 180ms, background-color 180ms;
+}
+.on .knob {
+  background: var(--on-accent);
+  transform: translateX(18px);
+}
