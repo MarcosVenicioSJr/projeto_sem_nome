@@ -2,118 +2,211 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Chip } from '../_components/Chip';
 import { Button } from '../_components/Button';
-import { Switch } from '../_components/Switch';
 import { Dialog } from '../_components/Dialog';
-import { Field, Input, Select } from '../_components/Field';
+import { Field, Input } from '../_components/Field';
 import { Table, type Column } from '../_components/Table';
 import { Icon } from '../_lib/icons';
+import { useSession } from '../../_lib/session';
 import { useAdminData } from '../_lib/data';
-import { SERVICE_CATEGORIES } from '../_lib/mock-data';
 import { brl } from '../_lib/format';
-import type { Service, ServiceCategory } from '../_lib/types';
+import type { Service as CatalogService } from '@org/contracts';
 import styles from './page.module.css';
 
-const CATEGORY_FILTERS = ['Todos', ...SERVICE_CATEGORIES] as const;
+type OfferDraft = { on: boolean; price: string; duration: string };
 
 export default function ServicosPage() {
-  const { services, toggleServiceActive, createService, showToast } = useAdminData();
-  const [category, setCategory] = useState<(typeof CATEGORY_FILTERS)[number]>('Todos');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', category: 'Cabelo' as ServiceCategory, duration: 30, price: '' });
+  const { catalog, offers, team, loading, loadError, createService, removeService, saveOffer, removeOffer, showToast } = useAdminData();
+  const { isManagement } = useSession();
 
-  const filtered = services.filter((s) => category === 'Todos' || s.category === category);
-  const activeCount = services.filter((s) => s.active).length;
-  const valid = form.name.trim().length >= 2 && Number(form.price) > 0;
+  const [newOpen, setNewOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [editing, setEditing] = useState<CatalogService | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, OfferDraft>>({});
+  const [busy, setBusy] = useState(false);
 
-  function handleToggle(service: Service) {
-    toggleServiceActive(service.id);
-    showToast(`${service.name} ${service.active ? 'oculto do agendamento' : 'disponível para agendamento'}`);
+  const fail = (e: unknown) => showToast(e instanceof Error ? e.message : 'Algo deu errado');
+
+  async function handleCreate() {
+    if (name.trim().length < 2) return;
+    setBusy(true);
+    try {
+      await createService(name.trim());
+      showToast(`Serviço ${name.trim()} criado`);
+      setNewOpen(false);
+      setName('');
+    } catch (e) {
+      fail(e);
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function handleSave() {
-    if (!valid) return;
-    createService({ name: form.name.trim(), category: form.category, duration: form.duration, price: Number(form.price) });
-    showToast(`Serviço ${form.name.trim()} criado`);
-    setDialogOpen(false);
-    setForm({ name: '', category: 'Cabelo', duration: 30, price: '' });
+  async function handleRemove(service: CatalogService) {
+    if (!window.confirm(`Excluir o serviço "${service.name}"?`)) return;
+    try {
+      await removeService(service.id);
+      showToast(`Serviço ${service.name} excluído`);
+    } catch (e) {
+      fail(e);
+    }
   }
 
-  const cols: Column<Service>[] = [
+  function openOffers(service: CatalogService) {
+    const initial: Record<string, OfferDraft> = {};
+    for (const member of team) {
+      const offer = offers.find((o) => o.serviceId === service.id && o.professionalId === member.id);
+      initial[member.id] = {
+        on: !!offer,
+        price: offer ? String(offer.price) : '',
+        duration: offer ? String(offer.durationMinutes) : '30',
+      };
+    }
+    setDrafts(initial);
+    setEditing(service);
+  }
+
+  const draftValid = (d: OfferDraft) => !d.on || (Number(d.price) >= 0 && d.price !== '' && Number(d.duration) >= 5);
+  const allValid = Object.values(drafts).every(draftValid);
+
+  async function handleSaveOffers() {
+    if (!editing || !allValid) return;
+    setBusy(true);
+    try {
+      for (const member of team) {
+        const draft = drafts[member.id];
+        const existing = offers.find((o) => o.serviceId === editing.id && o.professionalId === member.id);
+        if (!draft) continue;
+        if (draft.on) {
+          const price = Number(draft.price);
+          const duration = Number(draft.duration);
+          if (!existing || existing.price !== price || existing.durationMinutes !== duration) {
+            await saveOffer(member.id, editing.id, price, duration);
+          }
+        } else if (existing) {
+          await removeOffer(member.id, editing.id);
+        }
+      }
+      showToast(`Profissionais de ${editing.name} atualizados`);
+      setEditing(null);
+    } catch (e) {
+      fail(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const cols: Column<CatalogService>[] = [
     { key: 'name', header: 'Serviço', render: (s) => <span className={styles.serviceName}>{s.name}</span> },
-    { key: 'cat', header: 'Categoria', render: (s) => s.category },
-    { key: 'dur', header: 'Duração', render: (s) => `${s.duration} min` },
-    { key: 'price', header: 'Preço', render: (s) => brl(s.price) },
     {
-      key: 'active',
-      header: 'No agendamento',
+      key: 'pros',
+      header: 'Quem faz · preço · duração',
+      render: (s) => {
+        const list = offers.filter((o) => o.serviceId === s.id);
+        if (list.length === 0) return <span className={styles.none}>Ninguém ainda</span>;
+        return (
+          <div className={styles.tags}>
+            {list.map((o) => (
+              <span key={o.id} className={styles.tag}>
+                {team.find((m) => m.id === o.professionalId)?.name.split(' ')[0] ?? '—'} · {brl(o.price)} · {o.durationMinutes} min
+              </span>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      header: '',
       align: 'right',
-      render: (s) => <Switch checked={s.active} onChange={() => handleToggle(s)} label={`Disponibilizar ${s.name} no agendamento`} />,
+      render: (s) => (
+        <div className={styles.actions}>
+          <Button onClick={() => openOffers(s)}>Profissionais</Button>
+          {isManagement ? (
+            <Button variant="danger" onClick={() => handleRemove(s)}>
+              Excluir
+            </Button>
+          ) : null}
+        </div>
+      ),
     },
   ];
 
   return (
     <div className={styles.page}>
       <div className={styles.toolbar}>
-        <div className={styles.chips}>
-          {CATEGORY_FILTERS.map((c) => (
-            <Chip key={c} active={category === c} onClick={() => setCategory(c)}>
-              {c}
-            </Chip>
-          ))}
-        </div>
-        <div className={styles.right}>
-          <span className={styles.count}>
-            {activeCount} ativos de {services.length}
-          </span>
-          <Button variant="primary" onClick={() => setDialogOpen(true)}>
+        <span className={styles.count}>{catalog.length} serviços</span>
+        {isManagement ? (
+          <Button variant="primary" onClick={() => setNewOpen(true)}>
             <Icon name="plus" size={16} /> Novo serviço
           </Button>
-        </div>
+        ) : null}
       </div>
 
-      <Table columns={cols} rows={filtered} />
+      {loadError ? <p className={styles.note}>{loadError}</p> : null}
+      {loading ? <p className={styles.note}>Carregando…</p> : <Table columns={cols} rows={catalog} />}
 
       <p className={styles.note}>
-        A comissão de cada serviço segue a % fixa do barbeiro que atendeu.{' '}
+        Cada profissional escolhe os serviços que faz e define o próprio preço e duração. A comissão segue a % fixa de quem atendeu.{' '}
         <Link href="/admin/equipe?tab=comissoes">Ajustar em Equipe › Comissões</Link>
       </p>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} title="Novo serviço">
+      <Dialog open={newOpen} onClose={() => setNewOpen(false)} title="Novo serviço">
         <div className={styles.formCol}>
-          <Field label="Nome">
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex.: Corte masculino" />
-          </Field>
-          <div className={styles.formRow}>
-            <Field label="Categoria">
-              <Select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ServiceCategory })}>
-                {SERVICE_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Duração (min)">
-              <Input
-                type="number"
-                min={15}
-                max={90}
-                step={5}
-                value={form.duration}
-                onChange={(e) => setForm({ ...form, duration: Number(e.target.value) })}
-              />
-            </Field>
-          </div>
-          <Field label="Preço (R$)">
-            <Input type="number" min={0} step={5} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+          <Field label="Nome" hint="Preço e duração são definidos por profissional, depois de criar.">
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Corte masculino" />
           </Field>
         </div>
         <div className={styles.dialogActions}>
-          <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-          <Button variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : 0.45 }} onClick={handleSave}>
+          <Button onClick={() => setNewOpen(false)}>Cancelar</Button>
+          <Button variant="primary" disabled={busy || name.trim().length < 2} onClick={handleCreate}>
             Criar serviço
+          </Button>
+        </div>
+      </Dialog>
+
+      <Dialog open={editing !== null} onClose={() => setEditing(null)} title={editing ? `Quem faz ${editing.name}` : ''}>
+        <div className={styles.formCol}>
+          {team.map((member) => {
+            const draft = drafts[member.id];
+            if (!draft) return null;
+            const set = (patch: Partial<OfferDraft>) => setDrafts((prev) => ({ ...prev, [member.id]: { ...draft, ...patch } }));
+            return (
+              <div key={member.id} className={styles.offerRow}>
+                <label className={styles.offerName}>
+                  <input type="checkbox" checked={draft.on} onChange={(e) => set({ on: e.target.checked })} />
+                  {member.name}
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={1}
+                  placeholder="Preço"
+                  aria-label={`Preço de ${member.name}`}
+                  disabled={!draft.on}
+                  value={draft.price}
+                  onChange={(e) => set({ price: e.target.value })}
+                />
+                <Input
+                  type="number"
+                  min={5}
+                  max={720}
+                  step={5}
+                  placeholder="Min"
+                  aria-label={`Duração de ${member.name} em minutos`}
+                  disabled={!draft.on}
+                  value={draft.duration}
+                  onChange={(e) => set({ duration: e.target.value })}
+                />
+              </div>
+            );
+          })}
+          {team.length === 0 ? <p className={styles.note}>Cadastre profissionais em Equipe primeiro.</p> : null}
+        </div>
+        <div className={styles.dialogActions}>
+          <Button onClick={() => setEditing(null)}>Cancelar</Button>
+          <Button variant="primary" disabled={busy || !allValid} onClick={handleSaveOffers}>
+            Salvar
           </Button>
         </div>
       </Dialog>
