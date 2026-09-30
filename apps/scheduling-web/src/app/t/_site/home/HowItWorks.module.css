@@ -1,0 +1,114 @@
+.section {
+  position: relative;
+  padding: var(--s-9) var(--gutter);
+  background: var(--ink-900);
+  scroll-margin-top: 64px;
+  /* Cortes diagonais no topo e na base: a seção inteira "fatiada". */
+  clip-path: polygon(0 3vw, 100% 0, 100% calc(100% - 3vw), 0 100%);
+}
+
+.head,
+.steps,
+.rules {
+  max-width: var(--max);
+  margin-inline: auto;
+}
+
+.head {
+  display: grid;
+  gap: var(--s-2);
+  margin-bottom: var(--s-7);
+}
+
+.title {
+  font-size: var(--t-h2);
+}
+
+.steps {
+  display: grid;
+  gap: var(--s-6);
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'num title'
+    'num text';
+  gap: var(--s-1) var(--s-4);
+  align-items: start;
+}
+
+/* Números vazados, como gravados no metal. */
+.num {
+  grid-area: num;
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 12vw, 8rem);
+  font-weight: 900;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--gold-500);
+  min-width: 0.7em;
+}
+
+.stepTitle {
+  grid-area: title;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-weight: 800;
+  font-variation-settings: 'opsz' 40;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.stepText {
+  grid-area: text;
+  margin: 0;
+  color: var(--chalk-muted);
+  max-width: 22rem;
+}
+
+.rules {
+  margin-top: var(--s-7);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--ink-700);
+  color: var(--chalk-muted);
+  font-size: var(--t-small);
+}
+
+.rules strong {
+  color: var(--chalk);
+}
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .step {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity var(--dur-3) linear calc(var(--i) * 140ms),
+      transform var(--dur-3) var(--ease-out) calc(var(--i) * 140ms);
+  }
+  .steps[data-in] .step {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (min-width: 900px) {
+  .steps {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-6);
+  }
+  /* Escada: cada passo desce um degrau, lendo na diagonal da lâmina. */
+  .step:nth-child(2) {
+    margin-top: var(--s-7);
+  }
+  .step:nth-child(3) {
+    margin-top: calc(var(--s-7) * 2);
+  }
+}

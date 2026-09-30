@@ -1,0 +1,146 @@
+.viewer {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.stage {
+  --cut-bg: var(--ink-950);
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--ink-900);
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.stage:active {
+  cursor: grabbing;
+}
+
+/* Canto cortado da assinatura, por cima da foto. */
+.stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    225deg,
+    var(--cut-bg) 0 var(--cut-lg),
+    transparent calc(var(--cut-lg) + 0.5px)
+  );
+  pointer-events: none;
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity var(--dur-2) linear,
+    transform var(--dur-3) var(--ease-out);
+}
+
+.active {
+  opacity: 1;
+  transform: none;
+}
+
+.hint {
+  position: absolute;
+  left: var(--s-3);
+  bottom: var(--s-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  background: rgb(10 9 7 / 0.78);
+  color: var(--chalk);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: opacity var(--dur-2) linear;
+}
+
+.hint[data-hidden] {
+  opacity: 0;
+}
+
+.compass {
+  position: absolute;
+  right: var(--s-3);
+  bottom: var(--s-3);
+  width: 44px;
+  height: 44px;
+  padding: 2px;
+  background: rgb(10 9 7 / 0.78);
+  border-radius: 50%;
+  overflow: visible;
+}
+
+.compass circle {
+  fill: none;
+  stroke: var(--ink-600);
+  stroke-width: 1.5;
+}
+
+.nose {
+  fill: none;
+  stroke: var(--chalk-muted);
+  stroke-width: 1.5;
+}
+
+.needle {
+  stroke: var(--gold-300);
+  stroke-width: 2.5;
+  stroke-linecap: square;
+  transition: transform var(--dur-3) var(--ease-blade);
+}
+
+.dial {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--s-1);
+}
+
+.tick {
+  display: grid;
+  gap: var(--s-2);
+  min-height: 44px;
+  padding: var(--s-1) 0;
+  border: 0;
+  background: none;
+  color: var(--chalk-faint);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--dur-1) linear;
+}
+
+.tick:hover {
+  color: var(--chalk);
+}
+
+.tickBar {
+  height: 3px;
+  background: var(--ink-700);
+  transition: background-color var(--dur-2) linear;
+}
+
+.tick[aria-pressed='true'] {
+  color: var(--gold-300);
+}
+
+.tick[aria-pressed='true'] .tickBar {
+  background: var(--gold-500);
+}

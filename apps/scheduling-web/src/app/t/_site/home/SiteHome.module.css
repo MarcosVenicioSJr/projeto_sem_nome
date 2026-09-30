@@ -1,0 +1,19 @@
+.page {
+  position: relative;
+  overflow-x: clip;
+}
+
+.skip {
+  position: absolute;
+  left: var(--s-4);
+  top: -100px;
+  z-index: 100;
+  padding: var(--s-3) var(--s-4);
+  background: var(--gold-500);
+  color: var(--on-gold);
+  font-weight: 700;
+}
+
+.skip:focus-visible {
+  top: var(--s-4);
+}

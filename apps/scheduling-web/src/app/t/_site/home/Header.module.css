@@ -1,0 +1,87 @@
+.header {
+  position: fixed;
+  inset: var(--banner-h) 0 auto;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  height: 68px;
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color var(--dur-2) linear,
+    border-color var(--dur-2) linear;
+}
+
+.solid {
+  background: rgb(10 9 7 / 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom-color: var(--ink-700);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  margin-right: auto;
+  color: var(--chalk);
+  text-decoration: none;
+}
+
+.mark {
+  width: 26px;
+  height: 32px;
+}
+
+.brandName {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: none;
+  gap: var(--s-2);
+}
+
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  color: var(--chalk-muted);
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: linear-gradient(var(--gold-500), var(--gold-500)) left
+    calc(100% - 8px) / 0 2px no-repeat;
+  transition:
+    color var(--dur-1) linear,
+    background-size var(--dur-2) var(--ease-out);
+}
+
+.nav a:hover {
+  color: var(--chalk);
+  background-size: calc(100% - 2 * var(--s-3)) 2px;
+  background-position-x: var(--s-3);
+}
+
+/* No celular o agendar vive na barra de baixo, na zona do polegar. */
+.cta {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .header {
+    height: 80px;
+  }
+  .nav,
+  .cta {
+    display: flex;
+  }
+}

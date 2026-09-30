@@ -1,0 +1,127 @@
+/**
+ * Design tokens do site público da barbearia.
+ *
+ * Paleta extraída da logo (folha de ouro sobre preto) e das fotos dos
+ * trabalhos — ver docs/design/site-barbearia.md. Nenhuma cor, espaço ou
+ * duração deve ser usada "solta" nos componentes: sempre var(--…).
+ */
+.theme {
+  /* ── cor ─────────────────────────────────────────────── */
+  --ink-950: #0a0907; /* fundo: preto da logo, puxado para o quente */
+  --ink-900: #12100d; /* superfície */
+  --ink-800: #1b1813; /* superfície elevada / hover */
+  --ink-700: #2a251d; /* linhas */
+  --ink-600: #3d362b; /* linha forte, borda de input */
+
+  --chalk: #f4f0e8; /* texto principal (17.5:1 sobre ink-950) */
+  --chalk-muted: #b8b0a1; /* texto secundário (9.3:1) */
+  --chalk-faint: #8f877a; /* legendas, desabilitado (5.6:1) */
+
+  --gold-300: #f1c838; /* brilho da folha — realces pontuais */
+  --gold-500: #d8a019; /* ouro navalha — cor de ação (8.5:1 sobre ink-950) */
+  --gold-700: #b66e08; /* cobre da folha — sombra/gradiente */
+  --on-gold: #140f04; /* texto sobre ouro (8.2:1; 4.8:1 no cobre) */
+  --gold-soft: rgb(216 160 25 / 0.12);
+  --gold-line: rgb(216 160 25 / 0.45);
+
+  --ok: #7cc49a;
+  --ok-soft: rgb(124 196 154 / 0.12);
+  --danger: #f08a7b;
+  --danger-soft: rgb(240 138 123 / 0.12);
+
+  --foil: linear-gradient(
+    115deg,
+    var(--gold-700) 0%,
+    var(--gold-500) 28%,
+    var(--gold-300) 46%,
+    var(--gold-500) 62%,
+    var(--gold-700) 100%
+  );
+
+  /* ── tipografia ──────────────────────────────────────── */
+  --font-display: var(--site-font-display), 'Arial Narrow', sans-serif;
+  --font-text: var(--site-font-text), system-ui, sans-serif;
+
+  --t-hero: clamp(3.75rem, 14vw, 11.5rem);
+  --t-h2: clamp(2.75rem, 8vw, 6rem);
+  --t-h3: clamp(1.5rem, 3vw, 2rem);
+  --t-lead: clamp(1.0625rem, 1.6vw, 1.25rem);
+  --t-body: 1rem;
+  --t-small: 0.875rem;
+  --t-micro: 0.75rem;
+
+  /* ── espaço (base 4px) ───────────────────────────────── */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4rem;
+  --s-9: 6rem;
+  --s-10: 8rem;
+
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --max: 78rem;
+
+  /* ── forma ───────────────────────────────────────────── */
+  /* Assinatura: um canto cortado no ângulo da lâmina (≈22°). */
+  --cut: 14px;
+  --cut-lg: 28px;
+  --radius: 4px;
+  --blade-angle: 22deg;
+
+  /* ── movimento ───────────────────────────────────────── */
+  --ease-blade: cubic-bezier(0.7, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-1: 160ms;
+  --dur-2: 320ms;
+  --dur-3: 700ms;
+  --dur-4: 1200ms;
+
+  /* Altura da faixa de demonstração (0 fora do modo demo). */
+  --banner-h: 0px;
+
+  --focus: 0 0 0 2px var(--ink-950), 0 0 0 4px var(--gold-300);
+
+  min-height: 100dvh;
+  background: var(--ink-950);
+  color: var(--chalk);
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme :global(::selection) {
+  background: var(--gold-500);
+  color: var(--on-gold);
+}
+
+.theme :global(:focus-visible) {
+  outline: none;
+  box-shadow: var(--focus);
+  border-radius: var(--radius);
+}
+
+.theme :global(img) {
+  max-width: 100%;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme,
+  .theme * {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+    --dur-4: 0ms;
+    scroll-behavior: auto !important;
+  }
+}
+
+.demo {
+  --banner-h: 28px;
+}

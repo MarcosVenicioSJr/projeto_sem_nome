@@ -1,0 +1,55 @@
+.razor {
+  display: block;
+  overflow: visible;
+}
+
+.handle,
+.blade {
+  transition:
+    transform var(--dur-4) var(--ease-blade),
+    opacity var(--dur-2) linear;
+}
+
+/* Posição da logo: cabo inclinado à esquerda, lâmina aberta à direita. */
+.handle {
+  transform: rotate(13deg);
+}
+
+/* Fechada: a lâmina se esconde atrás do cabo. */
+.blade {
+  transform: rotate(16deg);
+  opacity: 0;
+}
+
+.open .blade {
+  transform: rotate(-22deg);
+  opacity: 1;
+}
+
+/* Abre sozinha ao carregar (CSS puro: funciona até sem JavaScript). */
+.auto .blade {
+  animation: razor-open var(--dur-4) var(--ease-blade) var(--razor-delay, 300ms)
+    both;
+}
+
+@keyframes razor-open {
+  from {
+    transform: rotate(16deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    transform: rotate(-22deg);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auto .blade {
+    animation: none;
+    transform: rotate(-22deg);
+    opacity: 1;
+  }
+}

@@ -1,0 +1,85 @@
+.section {
+  max-width: calc(var(--max) + 2 * var(--gutter));
+  margin: 0 auto;
+  padding: var(--s-8) var(--gutter) var(--s-9);
+  scroll-margin-top: 64px;
+}
+
+.head {
+  display: grid;
+  gap: var(--s-2);
+  margin-bottom: var(--s-7);
+}
+
+.title {
+  font-size: var(--t-h2);
+}
+
+.lead {
+  max-width: 32rem;
+  margin: var(--s-3) 0 0;
+  color: var(--chalk-muted);
+  font-size: var(--t-lead);
+}
+
+.grid {
+  display: grid;
+  gap: var(--s-7) var(--s-6);
+}
+
+.work {
+  margin: 0;
+  display: grid;
+  gap: var(--s-4);
+  align-content: start;
+}
+
+.caption {
+  display: grid;
+  gap: var(--s-1);
+  padding-left: var(--s-4);
+  border-left: 2px solid var(--gold-500);
+}
+
+.captionTitle {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-weight: 700;
+  font-variation-settings: 'opsz' 40;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.captionText {
+  color: var(--chalk-muted);
+  font-size: var(--t-small);
+  max-width: 34rem;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  margin-top: var(--s-7);
+  color: var(--gold-300);
+  font-weight: 600;
+}
+
+.more:hover {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    /* Fotos originais têm ~450px: limitar a largura evita ampliar demais. */
+    grid-template-columns: minmax(0, 560px) minmax(0, 460px);
+    justify-content: space-between;
+    align-items: start;
+  }
+  /* Ritmo quebrado: a foto de detalhe desce, não alinha pelo topo. */
+  .narrow {
+    margin-top: var(--s-9);
+  }
+}
