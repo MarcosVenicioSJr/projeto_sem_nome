@@ -75,13 +75,25 @@
 /* Assinatura visual "listra de navalha" — usar sempre com significado
    (indisponibilidade, parte não realizada, dia fechado). */
 .stripes {
-  background-image: repeating-linear-gradient(135deg, var(--stripe) 0 6px, transparent 6px 12px);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--stripe) 0 6px,
+    transparent 6px 12px
+  );
 }
 .stripes-sm {
-  background-image: repeating-linear-gradient(135deg, var(--stripe) 0 3px, transparent 3px 7px);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--stripe) 0 3px,
+    transparent 3px 7px
+  );
 }
 .stripes-lg {
-  background-image: repeating-linear-gradient(135deg, var(--stripe) 0 8px, transparent 8px 16px);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--stripe) 0 8px,
+    transparent 8px 16px
+  );
 }
 
 .tabularNums {

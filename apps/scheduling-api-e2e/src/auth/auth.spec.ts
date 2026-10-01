@@ -52,14 +52,25 @@ describe('Tenants and auth (e2e)', () => {
     const { slug, ownerEmail } = await createTenant();
     const body = (s: string, email: string) => ({
       tenant: { name: 'Outra', slug: s },
-      owner: { name: 'Outro Dono', email, phone: '11987654321', password: PASSWORD },
+      owner: {
+        name: 'Outro Dono',
+        email,
+        phone: '11987654321',
+        password: PASSWORD,
+      },
     });
 
-    const slugTaken = await axios.post('/api/tenants', body(slug, `x-${uniq()}@example.com`));
+    const slugTaken = await axios.post(
+      '/api/tenants',
+      body(slug, `x-${uniq()}@example.com`),
+    );
     expect(slugTaken.status).toBe(409);
     expect(slugTaken.data.code).toBe('errors.tenant.slugTaken');
 
-    const emailTaken = await axios.post('/api/tenants', body(`outra-${uniq()}`, ownerEmail));
+    const emailTaken = await axios.post(
+      '/api/tenants',
+      body(`outra-${uniq()}`, ownerEmail),
+    );
     expect(emailTaken.status).toBe(409);
     expect(emailTaken.data.code).toBe('errors.auth.emailTaken');
   });
@@ -88,7 +99,8 @@ describe('Tenants and auth (e2e)', () => {
     });
     const asOwner = async () => {
       const t = await createTenant();
-      const token = (await loginMember(t.ownerEmail)).data.accessToken as string;
+      const token = (await loginMember(t.ownerEmail)).data
+        .accessToken as string;
       return { ...t, token };
     };
     const createEmployee = (token: string, body: object = employeeBody()) =>
@@ -121,12 +133,18 @@ describe('Tenants and auth (e2e)', () => {
     it('owner can create a manager, who can manage but has a tenant-bound token', async () => {
       const owner = await asOwner();
       const body = employeeBody();
-      const created = await createEmployee(owner.token, { ...body, role: 'manager' });
+      const created = await createEmployee(owner.token, {
+        ...body,
+        role: 'manager',
+      });
       expect(created.status).toBe(201);
       expect(created.data.role).toBe('manager');
 
       const managerToken = (await loginMember(body.email)).data.accessToken;
-      const list = await axios.get('/api/members/employees', bearer(managerToken));
+      const list = await axios.get(
+        '/api/members/employees',
+        bearer(managerToken),
+      );
       expect(list.status).toBe(200);
     });
 
@@ -146,7 +164,10 @@ describe('Tenants and auth (e2e)', () => {
         bearer(a.token),
       );
       expect(upd.status).toBe(200);
-      expect(upd.data).toMatchObject({ name: 'Ana Renomeada', commissionRate: 35.5 });
+      expect(upd.data).toMatchObject({
+        name: 'Ana Renomeada',
+        commissionRate: 35.5,
+      });
 
       const cross = await axios.patch(
         `/api/members/employees/${emp.id}`,
@@ -176,9 +197,15 @@ describe('Tenants and auth (e2e)', () => {
       const create = await createEmployee(empToken);
       expect(create.status).toBe(403);
       expect(create.data.code).toBe('errors.auth.forbidden');
-      expect((await axios.get('/api/members/employees', bearer(empToken))).status).toBe(403);
+      expect(
+        (await axios.get('/api/members/employees', bearer(empToken))).status,
+      ).toBe(403);
 
-      const patchMe = await axios.patch('/api/user/me', { name: 'Novo Nome' }, bearer(empToken));
+      const patchMe = await axios.patch(
+        '/api/user/me',
+        { name: 'Novo Nome' },
+        bearer(empToken),
+      );
       expect(patchMe.status).toBe(403);
     });
   });

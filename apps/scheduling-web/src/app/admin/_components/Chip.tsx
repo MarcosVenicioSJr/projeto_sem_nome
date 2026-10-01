@@ -6,6 +6,8 @@ export function Chip({
   className,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
-  const cls = [styles.chip, active ? styles.active : '', className].filter(Boolean).join(' ');
+  const cls = [styles.chip, active ? styles.active : '', className]
+    .filter(Boolean)
+    .join(' ');
   return <button type="button" className={cls} {...props} />;
 }

@@ -19,7 +19,10 @@ export function Tabs<T extends string>({
           type="button"
           role="tab"
           aria-selected={item.key === active}
-          className={[styles.tab, item.key === active ? styles.active : ''].join(' ')}
+          className={[
+            styles.tab,
+            item.key === active ? styles.active : '',
+          ].join(' ')}
           onClick={() => onChange(item.key)}
         >
           {item.label}

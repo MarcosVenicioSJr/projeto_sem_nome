@@ -20,7 +20,10 @@ export function localMinuteToDate(date: string, minute: number): Date {
 
 /** `[from, to)` UTC range of a local day. */
 export function dayRange(date: string): { from: Date; to: Date } {
-  return { from: localMinuteToDate(date, 0), to: localMinuteToDate(date, 1440) };
+  return {
+    from: localMinuteToDate(date, 0),
+    to: localMinuteToDate(date, 1440),
+  };
 }
 
 /** `[from, to)` UTC range of a local month (`YYYY-MM`). */

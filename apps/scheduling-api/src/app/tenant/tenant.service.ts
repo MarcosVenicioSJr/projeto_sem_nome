@@ -35,15 +35,12 @@ export class TenantService {
       throw new AppException('errors.auth.emailTaken', HttpStatus.CONFLICT);
     }
 
-    const { tenant, owner } = await this.tenants.createWithOwner(
-      input.tenant,
-      {
-        name: input.owner.name,
-        email: input.owner.email,
-        phone: input.owner.phone,
-        passwordHash: await hash(input.owner.password, BCRYPT_ROUNDS),
-      },
-    );
+    const { tenant, owner } = await this.tenants.createWithOwner(input.tenant, {
+      name: input.owner.name,
+      email: input.owner.email,
+      phone: input.owner.phone,
+      passwordHash: await hash(input.owner.password, BCRYPT_ROUNDS),
+    });
     return { tenant: toTenant(tenant), owner: toMember(owner) };
   }
 

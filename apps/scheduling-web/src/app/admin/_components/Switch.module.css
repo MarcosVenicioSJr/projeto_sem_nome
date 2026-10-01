@@ -24,7 +24,9 @@
   border-radius: 50%;
   background: var(--muted);
   display: block;
-  transition: transform 180ms, background-color 180ms;
+  transition:
+    transform 180ms,
+    background-color 180ms;
 }
 .on .knob {
   background: var(--on-accent);

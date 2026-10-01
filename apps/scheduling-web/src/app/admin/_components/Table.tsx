@@ -9,14 +9,23 @@ export type Column<Row> = {
   align?: 'left' | 'right' | 'center';
 };
 
-export function Table<Row extends { id: string }>({ columns, rows }: { columns: Column<Row>[]; rows: Row[] }) {
+export function Table<Row extends { id: string }>({
+  columns,
+  rows,
+}: {
+  columns: Column<Row>[];
+  rows: Row[];
+}) {
   return (
     <div className={styles.wrap}>
       <table className={styles.table}>
         <thead>
           <tr>
             {columns.map((c) => (
-              <th key={c.key} style={{ width: c.width, textAlign: c.align ?? 'left' }}>
+              <th
+                key={c.key}
+                style={{ width: c.width, textAlign: c.align ?? 'left' }}
+              >
                 {c.header}
               </th>
             ))}

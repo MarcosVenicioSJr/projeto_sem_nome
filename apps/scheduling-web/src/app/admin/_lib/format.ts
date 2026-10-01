@@ -50,7 +50,10 @@ export function startOfToday(): Date {
 }
 
 /** Data correspondente a um deslocamento em dias a partir de hoje. */
-export function dateForOffset(offset: number, base: Date = startOfToday()): Date {
+export function dateForOffset(
+  offset: number,
+  base: Date = startOfToday(),
+): Date {
   const d = new Date(base);
   d.setDate(d.getDate() + offset);
   return d;
@@ -58,20 +61,37 @@ export function dateForOffset(offset: number, base: Date = startOfToday()): Date
 
 export function ddmm(offset: number, base?: Date): string {
   const d = dateForOffset(offset, base);
-  return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+  return (
+    String(d.getDate()).padStart(2, '0') +
+    '/' +
+    String(d.getMonth() + 1).padStart(2, '0')
+  );
 }
 
 /** "Quarta-feira, 23 de setembro" */
 export function longDayLabel(offset: number, base?: Date): string {
   const d = dateForOffset(offset, base);
   const wd = WEEKDAYS_LONG[d.getDay()];
-  return wd.charAt(0).toUpperCase() + wd.slice(1) + ', ' + d.getDate() + ' de ' + MONTHS_LONG[d.getMonth()];
+  return (
+    wd.charAt(0).toUpperCase() +
+    wd.slice(1) +
+    ', ' +
+    d.getDate() +
+    ' de ' +
+    MONTHS_LONG[d.getMonth()]
+  );
 }
 
 /** "Qua, 23 set" */
 export function shortDayLabel(offset: number, base?: Date): string {
   const d = dateForOffset(offset, base);
-  return WEEKDAYS_SHORT[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS_LONG[d.getMonth()].slice(0, 3);
+  return (
+    WEEKDAYS_SHORT[d.getDay()] +
+    ', ' +
+    d.getDate() +
+    ' ' +
+    MONTHS_LONG[d.getMonth()].slice(0, 3)
+  );
 }
 
 /** Minutos desde 00:00 no momento atual. */
@@ -90,7 +110,9 @@ export function initials(name: string): string {
     .toUpperCase();
 }
 
-export function greetingFor(hour: number): 'Bom dia' | 'Boa tarde' | 'Boa noite' {
+export function greetingFor(
+  hour: number,
+): 'Bom dia' | 'Boa tarde' | 'Boa noite' {
   if (hour < 12) return 'Bom dia';
   if (hour < 18) return 'Boa tarde';
   return 'Boa noite';

@@ -21,10 +21,18 @@ async function setup() {
   const ownerEmail = `dono-${id}@example.com`;
   await axios.post('/api/tenants', {
     tenant: { name: `Agenda ${id}`, slug },
-    owner: { name: 'Dono Agenda', email: ownerEmail, phone: '11987654321', password: PASSWORD },
+    owner: {
+      name: 'Dono Agenda',
+      email: ownerEmail,
+      phone: '11987654321',
+      password: PASSWORD,
+    },
   });
   const owner = (
-    await axios.post('/api/auth/member/login', { email: ownerEmail, password: PASSWORD })
+    await axios.post('/api/auth/member/login', {
+      email: ownerEmail,
+      password: PASSWORD,
+    })
   ).data.accessToken as string;
 
   const professionalEmail = `pro-${id}@example.com`;
@@ -42,8 +50,12 @@ async function setup() {
     )
   ).data;
 
-  const cut = (await axios.post('/api/services', { name: 'Corte' }, bearer(owner))).data;
-  const beard = (await axios.post('/api/services', { name: 'Barba' }, bearer(owner))).data;
+  const cut = (
+    await axios.post('/api/services', { name: 'Corte' }, bearer(owner))
+  ).data;
+  const beard = (
+    await axios.post('/api/services', { name: 'Barba' }, bearer(owner))
+  ).data;
   await axios.put(
     `/api/members/${professional.id}/services`,
     { serviceId: cut.id, price: 50, durationMinutes: 30 },
@@ -72,7 +84,12 @@ async function setup() {
 
 const book = (
   slug: string,
-  body: { professionalId: string; serviceIds: string[]; startAt: string; clientPhone: string },
+  body: {
+    professionalId: string;
+    serviceIds: string[];
+    startAt: string;
+    clientPhone: string;
+  },
 ) =>
   axios.post(`/api/t/${slug}/agenda/appointments`, {
     clientName: 'Helena Cardoso',
@@ -85,10 +102,9 @@ describe('Agenda (e2e)', () => {
     const res = await axios.get(`/api/t/${t.slug}/agenda/professionals`);
     expect(res.status).toBe(200);
     expect(res.data).toHaveLength(1);
-    expect(res.data[0].services.map((s: { name: string }) => s.name).sort()).toEqual([
-      'Barba',
-      'Corte',
-    ]);
+    expect(
+      res.data[0].services.map((s: { name: string }) => s.name).sort(),
+    ).toEqual(['Barba', 'Corte']);
   });
 
   it('offers slots that respect hours and lunch, and books without any account', async () => {
@@ -176,8 +192,14 @@ describe('Agenda (e2e)', () => {
   it('refuses a time that is already taken', async () => {
     const t = await setup();
     const startAt = `${tomorrowLocal()}T14:00:00.000Z`;
-    const args = { professionalId: t.professional.id, serviceIds: [t.cut.id], startAt };
-    expect((await book(t.slug, { ...args, clientPhone: '11999990004' })).status).toBe(201);
+    const args = {
+      professionalId: t.professional.id,
+      serviceIds: [t.cut.id],
+      startAt,
+    };
+    expect(
+      (await book(t.slug, { ...args, clientPhone: '11999990004' })).status,
+    ).toBe(201);
     const clash = await book(t.slug, { ...args, clientPhone: '11999990005' });
     expect(clash.status).toBe(409);
     expect(clash.data.code).toBe('errors.agenda.slotUnavailable');
@@ -191,13 +213,19 @@ describe('Agenda (e2e)', () => {
       startAt: `${tomorrowLocal()}T13:00:00.000Z`,
       clientPhone: '11999990006',
     });
-    const cancel = await axios.post(`/api/agenda/cancel/${booked.data.cancelToken}`);
+    const cancel = await axios.post(
+      `/api/agenda/cancel/${booked.data.cancelToken}`,
+    );
     expect(cancel.status).toBe(200);
     expect(cancel.data.status).toBe('cancelled');
 
-    const again = await axios.post(`/api/agenda/cancel/${booked.data.cancelToken}`);
+    const again = await axios.post(
+      `/api/agenda/cancel/${booked.data.cancelToken}`,
+    );
     expect(again.status).toBe(409);
-    expect((await axios.post(`/api/agenda/cancel/${'x'.repeat(30)}`)).status).toBe(404);
+    expect(
+      (await axios.post(`/api/agenda/cancel/${'x'.repeat(30)}`)).status,
+    ).toBe(404);
   });
 
   it('completing an appointment records revenue; commission and reports follow', async () => {
@@ -238,7 +266,10 @@ describe('Agenda (e2e)', () => {
     ).toBe(409);
 
     // Commission base: every non-cancelled service of the day (R$ 50 + R$ 30) x 40%
-    const commissions = await axios.get(`/api/finance/commissions?date=${date}`, bearer(t.owner));
+    const commissions = await axios.get(
+      `/api/finance/commissions?date=${date}`,
+      bearer(t.owner),
+    );
     expect(commissions.data).toEqual([
       expect.objectContaining({
         professionalId: t.professional.id,
@@ -251,32 +282,70 @@ describe('Agenda (e2e)', () => {
 
     // Counter cancels the second one (e.g. a no-show): it leaves the commission base
     expect(
-      (await axios.patch(`/api/agenda/${second.data.id}/cancel`, {}, bearer(t.owner))).status,
+      (
+        await axios.patch(
+          `/api/agenda/${second.data.id}/cancel`,
+          {},
+          bearer(t.owner),
+        )
+      ).status,
     ).toBe(200);
-    const after = await axios.get(`/api/finance/commissions?date=${date}`, bearer(t.owner));
-    expect(after.data[0]).toMatchObject({ servicesDone: 1, servicesTotal: 50, commission: 20 });
+    const after = await axios.get(
+      `/api/finance/commissions?date=${date}`,
+      bearer(t.owner),
+    );
+    expect(after.data[0]).toMatchObject({
+      servicesDone: 1,
+      servicesTotal: 50,
+      commission: 20,
+    });
 
     const month = date.slice(0, 7);
-    const revenue = await axios.get(`/api/finance/reports/revenue?month=${month}`, bearer(t.owner));
+    const revenue = await axios.get(
+      `/api/finance/reports/revenue?month=${month}`,
+      bearer(t.owner),
+    );
     expect(revenue.data).toEqual({ month, total: 55.5 });
-    const clients = await axios.get(`/api/finance/reports/clients?month=${month}`, bearer(t.owner));
+    const clients = await axios.get(
+      `/api/finance/reports/clients?month=${month}`,
+      bearer(t.owner),
+    );
     expect(clients.data).toEqual({ month, clients: 1 });
   });
 
   it('employees only see and act on their own agenda; finance is management only', async () => {
     const t = await setup();
     const employee = (
-      await axios.post('/api/auth/member/login', { email: t.professionalEmail, password: PASSWORD })
+      await axios.post('/api/auth/member/login', {
+        email: t.professionalEmail,
+        password: PASSWORD,
+      })
     ).data.accessToken as string;
 
-    expect((await axios.get('/api/finance/expenses', bearer(employee))).status).toBe(403);
-    expect((await axios.post('/api/services', { name: 'Outro' }, bearer(employee))).status).toBe(403);
-    expect((await axios.get(`/api/agenda?date=${tomorrowLocal()}`, bearer(employee))).status).toBe(200);
-    expect((await axios.get(`/api/members/${t.professional.id}/services`, bearer(employee))).status).toBe(
-      200,
-    );
+    expect(
+      (await axios.get('/api/finance/expenses', bearer(employee))).status,
+    ).toBe(403);
+    expect(
+      (await axios.post('/api/services', { name: 'Outro' }, bearer(employee)))
+        .status,
+    ).toBe(403);
+    expect(
+      (await axios.get(`/api/agenda?date=${tomorrowLocal()}`, bearer(employee)))
+        .status,
+    ).toBe(200);
+    expect(
+      (
+        await axios.get(
+          `/api/members/${t.professional.id}/services`,
+          bearer(employee),
+        )
+      ).status,
+    ).toBe(200);
     const ownerId = (await axios.get('/api/user/me', bearer(t.owner))).data.id;
-    expect((await axios.get(`/api/members/${ownerId}/services`, bearer(employee))).status).toBe(403);
+    expect(
+      (await axios.get(`/api/members/${ownerId}/services`, bearer(employee)))
+        .status,
+    ).toBe(403);
   });
 });
 
@@ -285,7 +354,9 @@ describe('Counter (staff) booking and finance lists (e2e)', () => {
     const t = await setup();
     const date = tomorrowLocal();
     const phone = '11999990010';
-    const starts = ['13:00', '14:00', '14:30'].map((h) => `${date}T${h}:00.000Z`);
+    const starts = ['13:00', '14:00', '14:30'].map(
+      (h) => `${date}T${h}:00.000Z`,
+    );
 
     // staff slots have no 1 h notice, and the counter can exceed 2 bookings per phone
     const slots = await axios.get(
@@ -298,7 +369,13 @@ describe('Counter (staff) booking and finance lists (e2e)', () => {
     for (const startAt of starts) {
       const res = await axios.post(
         '/api/agenda/appointments',
-        { professionalId: t.professional.id, serviceIds: [t.cut.id], clientName: 'Cliente Balcão', clientPhone: phone, startAt },
+        {
+          professionalId: t.professional.id,
+          serviceIds: [t.cut.id],
+          clientName: 'Cliente Balcão',
+          clientPhone: phone,
+          startAt,
+        },
         bearer(t.owner),
       );
       expect(res.status).toBe(201);
@@ -314,7 +391,13 @@ describe('Counter (staff) booking and finance lists (e2e)', () => {
     // a taken time is refused for staff too
     const clash = await axios.post(
       '/api/agenda/appointments',
-      { professionalId: t.professional.id, serviceIds: [t.cut.id], clientName: 'Outro', clientPhone: '11999990011', startAt: starts[0] },
+      {
+        professionalId: t.professional.id,
+        serviceIds: [t.cut.id],
+        clientName: 'Outro',
+        clientPhone: '11999990011',
+        startAt: starts[0],
+      },
       bearer(t.owner),
     );
     expect(clash.status).toBe(409);
@@ -324,25 +407,41 @@ describe('Counter (staff) booking and finance lists (e2e)', () => {
   it('an employee books only for themself; the team, offers and tenant endpoints are scoped', async () => {
     const t = await setup();
     const employee = (
-      await axios.post('/api/auth/member/login', { email: t.professionalEmail, password: PASSWORD })
+      await axios.post('/api/auth/member/login', {
+        email: t.professionalEmail,
+        password: PASSWORD,
+      })
     ).data.accessToken as string;
     const ownerId = (await axios.get('/api/user/me', bearer(t.owner))).data.id;
     const startAt = `${tomorrowLocal()}T13:00:00.000Z`;
 
     const forOwner = await axios.post(
       '/api/agenda/appointments',
-      { professionalId: ownerId, serviceIds: [t.cut.id], clientName: 'X Y', clientPhone: '11999990012', startAt },
+      {
+        professionalId: ownerId,
+        serviceIds: [t.cut.id],
+        clientName: 'X Y',
+        clientPhone: '11999990012',
+        startAt,
+      },
       bearer(employee),
     );
     expect(forOwner.status).toBe(403);
 
     const team = await axios.get('/api/members', bearer(t.owner));
-    expect(team.data.map((m: { role: string }) => m.role).sort()).toEqual(['employee', 'owner']);
-    expect((await axios.get('/api/members', bearer(employee))).status).toBe(403);
+    expect(team.data.map((m: { role: string }) => m.role).sort()).toEqual([
+      'employee',
+      'owner',
+    ]);
+    expect((await axios.get('/api/members', bearer(employee))).status).toBe(
+      403,
+    );
 
     const offers = await axios.get('/api/services/offers', bearer(t.owner));
     expect(offers.data).toHaveLength(2);
-    expect((await axios.get('/api/services/offers', bearer(employee))).status).toBe(403);
+    expect(
+      (await axios.get('/api/services/offers', bearer(employee))).status,
+    ).toBe(403);
 
     const tenant = await axios.get('/api/tenants/me', bearer(employee));
     expect(tenant.status).toBe(200);
@@ -365,9 +464,16 @@ describe('Counter (staff) booking and finance lists (e2e)', () => {
       bearer(t.owner),
     );
     expect(booked.data.endAt).toBe(`${date}T13:50:00.000Z`); // 30 + 20 min
-    await axios.patch(`/api/agenda/${booked.data.id}/done`, { amount: 80, paymentMethod: 'credit' }, bearer(t.owner));
+    await axios.patch(
+      `/api/agenda/${booked.data.id}/done`,
+      { amount: 80, paymentMethod: 'credit' },
+      bearer(t.owner),
+    );
 
-    const lines = await axios.get(`/api/finance/revenues?date=${date}`, bearer(t.owner));
+    const lines = await axios.get(
+      `/api/finance/revenues?date=${date}`,
+      bearer(t.owner),
+    );
     expect(lines.data).toEqual([
       expect.objectContaining({
         clientName: 'Helena Cardoso',
@@ -384,7 +490,10 @@ describe('Stock, products and expenses (e2e)', () => {
   it('stock adjusts atomically and flags low stock; products and expenses are management only', async () => {
     const t = await setup();
     const employee = (
-      await axios.post('/api/auth/member/login', { email: t.professionalEmail, password: PASSWORD })
+      await axios.post('/api/auth/member/login', {
+        email: t.professionalEmail,
+        password: PASSWORD,
+      })
     ).data.accessToken as string;
 
     const item = (
@@ -417,16 +526,30 @@ describe('Stock, products and expenses (e2e)', () => {
       bearer(t.owner),
     );
     expect(product.status).toBe(201);
-    expect((await axios.post('/api/products', { name: 'Pomada', price: 1 }, bearer(employee))).status).toBe(
-      403,
-    );
+    expect(
+      (
+        await axios.post(
+          '/api/products',
+          { name: 'Pomada', price: 1 },
+          bearer(employee),
+        )
+      ).status,
+    ).toBe(403);
 
     const expense = await axios.post(
       '/api/finance/expenses',
-      { description: 'Aluguel', category: 'Fixa', amount: 1500, date: tomorrowLocal(), recurring: true },
+      {
+        description: 'Aluguel',
+        category: 'Fixa',
+        amount: 1500,
+        date: tomorrowLocal(),
+        recurring: true,
+      },
       bearer(t.owner),
     );
     expect(expense.status).toBe(201);
-    expect((await axios.get('/api/finance/expenses', bearer(t.owner))).data).toHaveLength(1);
+    expect(
+      (await axios.get('/api/finance/expenses', bearer(t.owner))).data,
+    ).toHaveLength(1);
   });
 });

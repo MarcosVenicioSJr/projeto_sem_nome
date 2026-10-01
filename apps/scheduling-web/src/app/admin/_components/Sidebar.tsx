@@ -16,7 +16,10 @@ export function Sidebar({ full }: { full: boolean }) {
   const groups = moduleGroups();
 
   return (
-    <nav className={[styles.sidebar, full ? styles.full : styles.rail].join(' ')} aria-label="Navegação principal">
+    <nav
+      className={[styles.sidebar, full ? styles.full : styles.rail].join(' ')}
+      aria-label="Navegação principal"
+    >
       <div className={styles.top}>
         <span className={`${styles.logoPill} stripes-sm`} aria-hidden />
         {full ? <span className={styles.shopName}>{shop.name}</span> : null}
@@ -25,16 +28,21 @@ export function Sidebar({ full }: { full: boolean }) {
       <div className={styles.groups}>
         {groups.map((group) => (
           <div key={group.label} className={styles.group}>
-            {full ? <span className={styles.groupLabel}>{group.label}</span> : null}
+            {full ? (
+              <span className={styles.groupLabel}>{group.label}</span>
+            ) : null}
             {group.items.map((item) => {
-              const active = pathname === item.href || pathname.startsWith(item.href + '/');
+              const active =
+                pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link
                   key={item.id}
                   href={item.href}
                   title={!full ? item.label : undefined}
                   aria-current={active ? 'page' : undefined}
-                  className={[styles.item, active ? styles.active : ''].join(' ')}
+                  className={[styles.item, active ? styles.active : ''].join(
+                    ' ',
+                  )}
                 >
                   <span className={styles.bar} />
                   <Icon name={item.icon} size={20} />
@@ -56,7 +64,13 @@ export function Sidebar({ full }: { full: boolean }) {
             </span>
           </div>
         ) : null}
-        <button type="button" className={styles.logout} onClick={logout} title="Sair" aria-label="Sair">
+        <button
+          type="button"
+          className={styles.logout}
+          onClick={logout}
+          title="Sair"
+          aria-label="Sair"
+        >
           <Icon name="logout" size={18} />
         </button>
       </div>

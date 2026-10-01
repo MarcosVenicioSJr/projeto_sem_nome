@@ -29,7 +29,9 @@ export default function LoginPage() {
       await login(email.trim(), password);
       router.replace('/admin/dashboard');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível entrar.');
+      setError(
+        err instanceof ApiError ? err.message : 'Não foi possível entrar.',
+      );
     } finally {
       setBusy(false);
     }
@@ -43,7 +45,13 @@ export default function LoginPage() {
       </div>
       <form className={styles.form} onSubmit={handleSubmit}>
         <Field label="E-mail">
-          <Input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </Field>
         <Field label="Senha">
           <Input
@@ -59,7 +67,11 @@ export default function LoginPage() {
             {error}
           </p>
         ) : null}
-        <Button type="submit" variant="primary" disabled={busy || !email || !password}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={busy || !email || !password}
+        >
           {busy ? 'Entrando…' : 'Entrar'}
         </Button>
       </form>

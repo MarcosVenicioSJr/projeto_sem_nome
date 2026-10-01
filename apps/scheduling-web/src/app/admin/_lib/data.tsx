@@ -1,6 +1,15 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type {
   Appointment as ApiAppointment,
   CreateProductInput,
@@ -17,7 +26,14 @@ import type {
 import { useSession } from '../../_lib/session';
 import { initials } from './format';
 import { DEFAULT_HOURS } from './mock-data';
-import type { Appointment, Barber, Product, Service, ShopHours, StockItem } from './types';
+import type {
+  Appointment,
+  Barber,
+  Product,
+  Service,
+  ShopHours,
+  StockItem,
+} from './types';
 
 export type TeamMember = Member;
 export type NewMemberInput = {
@@ -29,8 +45,17 @@ export type NewMemberInput = {
   commissionRate: number | null;
 };
 
-export type SiteSettings = { online: boolean; precos: boolean; escolher: boolean; produtos: boolean };
-export type SchedulingRules = { whatsappReminder: boolean; minLeadMinutes: number; horizonDays: number };
+export type SiteSettings = {
+  online: boolean;
+  precos: boolean;
+  escolher: boolean;
+  produtos: boolean;
+};
+export type SchedulingRules = {
+  whatsappReminder: boolean;
+  minLeadMinutes: number;
+  horizonDays: number;
+};
 
 type NewAppointmentInput = {
   clientName: string;
@@ -43,7 +68,8 @@ type NewAppointmentInput = {
   date: number;
 };
 
-const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const startOfDay = (d: Date) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
 /** Dia (deslocamento a partir de hoje) -> `YYYY-MM-DD` no fuso do navegador. */
 function isoDay(offset: number): string {
@@ -66,7 +92,10 @@ function fromApi(a: ApiAppointment): Appointment {
   const end = new Date(a.endAt);
   return {
     id: a.id,
-    date: Math.round((startOfDay(start).getTime() - startOfDay(new Date()).getTime()) / 86_400_000),
+    date: Math.round(
+      (startOfDay(start).getTime() - startOfDay(new Date()).getTime()) /
+        86_400_000,
+    ),
     barberId: a.professionalId,
     clientName: a.clientName,
     clientPhone: a.clientPhone,
@@ -122,15 +151,31 @@ type AdminDataValue = {
   /** carrega (da API) os agendamentos de um dia */
   loadDay: (dateOffset: number) => Promise<void>;
   /** horários livres (minutos desde 00:00) do profissional/serviço no dia, sem a regra de 1h de antecedência */
-  fetchSlots: (barberId: string, serviceId: string, dateOffset: number) => Promise<number[]>;
-  createAppointment: (input: NewAppointmentInput, rescheduleId?: string) => Promise<void>;
-  completeAppointment: (id: string, amount: number, paymentMethod: PaymentMethod) => Promise<void>;
+  fetchSlots: (
+    barberId: string,
+    serviceId: string,
+    dateOffset: number,
+  ) => Promise<number[]>;
+  createAppointment: (
+    input: NewAppointmentInput,
+    rescheduleId?: string,
+  ) => Promise<void>;
+  completeAppointment: (
+    id: string,
+    amount: number,
+    paymentMethod: PaymentMethod,
+  ) => Promise<void>;
   cancelAppointment: (id: string) => Promise<void>;
   sendPendingReminders: () => void;
 
   createService: (name: string) => Promise<void>;
   removeService: (id: string) => Promise<void>;
-  saveOffer: (professionalId: string, serviceId: string, price: number, durationMinutes: number) => Promise<void>;
+  saveOffer: (
+    professionalId: string,
+    serviceId: string,
+    price: number,
+    durationMinutes: number,
+  ) => Promise<void>;
   removeOffer: (professionalId: string, serviceId: string) => Promise<void>;
   createMember: (input: NewMemberInput) => Promise<void>;
   saveSchedule: (professionalId: string, days: ScheduleDay[]) => Promise<void>;
@@ -153,7 +198,10 @@ type AdminDataValue = {
   updateRules: (patch: Partial<SchedulingRules>) => void;
 
   toggleHourOpen: (day: number) => void;
-  updateHourRange: (day: number, patch: Partial<Pick<ShopHours, 'from' | 'to'>>) => void;
+  updateHourRange: (
+    day: number,
+    patch: Partial<Pick<ShopHours, 'from' | 'to'>>,
+  ) => void;
 };
 
 const AdminDataContext = createContext<AdminDataValue | null>(null);
@@ -169,11 +217,22 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [stockItems, setStockItems] = useState<ApiStockItem[]>([]);
   const [productItems, setProductItems] = useState<ApiProduct[]>([]);
-  const [commissionPaid, setCommissionPaid] = useState<Record<string, boolean>>({});
+  const [commissionPaid, setCommissionPaid] = useState<Record<string, boolean>>(
+    {},
+  );
   const [remindersSent, setRemindersSent] = useState(false);
   const [cashClosedAt, setCashClosedAt] = useState<string | null>(null);
-  const [site, setSite] = useState<SiteSettings>({ online: true, precos: true, escolher: true, produtos: false });
-  const [rules, setRules] = useState<SchedulingRules>({ whatsappReminder: true, minLeadMinutes: 0, horizonDays: 30 });
+  const [site, setSite] = useState<SiteSettings>({
+    online: true,
+    precos: true,
+    escolher: true,
+    produtos: false,
+  });
+  const [rules, setRules] = useState<SchedulingRules>({
+    whatsappReminder: true,
+    minLeadMinutes: 0,
+    horizonDays: 30,
+  });
   const [hours, setHours] = useState<ShopHours[]>(DEFAULT_HOURS);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -189,13 +248,20 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     if (!me) return;
     try {
       const members = isManagement ? await api<TeamMember[]>('/members') : [me];
-      const [catalogRows, allOffers, weeks, stockRows, productRows] = await Promise.all([
-        api<CatalogService[]>('/services'),
-        isManagement ? api<ProfessionalService[]>('/services/offers') : api<ProfessionalService[]>(`/members/${me.id}/services`),
-        Promise.all(members.map((m) => api<ScheduleDay[]>(`/members/${m.id}/schedule`))),
-        api<ApiStockItem[]>('/stock-items'),
-        isManagement ? api<ApiProduct[]>('/products') : Promise.resolve([] as ApiProduct[]),
-      ]);
+      const [catalogRows, allOffers, weeks, stockRows, productRows] =
+        await Promise.all([
+          api<CatalogService[]>('/services'),
+          isManagement
+            ? api<ProfessionalService[]>('/services/offers')
+            : api<ProfessionalService[]>(`/members/${me.id}/services`),
+          Promise.all(
+            members.map((m) => api<ScheduleDay[]>(`/members/${m.id}/schedule`)),
+          ),
+          api<ApiStockItem[]>('/stock-items'),
+          isManagement
+            ? api<ApiProduct[]>('/products')
+            : Promise.resolve([] as ApiProduct[]),
+        ]);
       setStockItems(stockRows);
       setProductItems(productRows);
       setTeam(members);
@@ -204,7 +270,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       setSchedules(Object.fromEntries(members.map((m, i) => [m.id, weeks[i]])));
       setLoadError(null);
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : 'Não foi possível carregar os dados.');
+      setLoadError(
+        e instanceof Error ? e.message : 'Não foi possível carregar os dados.',
+      );
     } finally {
       setLoading(false);
     }
@@ -234,26 +302,60 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     [catalog, offers],
   );
   const stock = useMemo<StockItem[]>(
-    () => stockItems.map((i) => ({ id: i.id, name: i.name, kind: 'Insumo' as const, qty: i.quantity, min: i.minQuantity, unit: i.unit, lot: 1 })),
+    () =>
+      stockItems.map((i) => ({
+        id: i.id,
+        name: i.name,
+        kind: 'Insumo' as const,
+        qty: i.quantity,
+        min: i.minQuantity,
+        unit: i.unit,
+        lot: 1,
+      })),
     [stockItems],
   );
   const products = useMemo<Product[]>(
-    () => productItems.map((p) => ({ id: p.id, name: p.name, category: p.category ?? '—', price: p.price, cost: p.cost, stockId: '' })),
+    () =>
+      productItems.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category ?? '—',
+        price: p.price,
+        cost: p.cost,
+        stockId: '',
+      })),
     [productItems],
   );
   const commissionPct = useMemo<Record<string, number>>(
-    () => Object.fromEntries(team.map((m) => [m.id, m.role === 'employee' ? (m.commissionRate ?? 0) : 0])),
+    () =>
+      Object.fromEntries(
+        team.map((m) => [
+          m.id,
+          m.role === 'employee' ? (m.commissionRate ?? 0) : 0,
+        ]),
+      ),
     [team],
   );
 
-  const getBarber = useCallback((id: string) => barbers.find((b) => b.id === id), [barbers]);
-  const getService = useCallback((id: string) => services.find((s) => s.id === id), [services]);
+  const getBarber = useCallback(
+    (id: string) => barbers.find((b) => b.id === id),
+    [barbers],
+  );
+  const getService = useCallback(
+    (id: string) => services.find((s) => s.id === id),
+    [services],
+  );
 
   const loadDay = useCallback(
     async (dateOffset: number) => {
-      const rows = await api<ApiAppointment[]>(`/agenda?date=${isoDay(dateOffset)}`);
+      const rows = await api<ApiAppointment[]>(
+        `/agenda?date=${isoDay(dateOffset)}`,
+      );
       const day = rows.filter((r) => r.status !== 'cancelled').map(fromApi);
-      setAppointments((prev) => [...prev.filter((a) => a.date !== dateOffset), ...day]);
+      setAppointments((prev) => [
+        ...prev.filter((a) => a.date !== dateOffset),
+        ...day,
+      ]);
     },
     [api],
   );
@@ -265,7 +367,11 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const fetchSlots = useCallback(
     async (barberId: string, serviceId: string, dateOffset: number) => {
-      const query = new URLSearchParams({ professionalId: barberId, serviceIds: serviceId, date: isoDay(dateOffset) });
+      const query = new URLSearchParams({
+        professionalId: barberId,
+        serviceIds: serviceId,
+        date: isoDay(dateOffset),
+      });
       const starts = await api<string[]>(`/agenda/slots?${query.toString()}`);
       return starts.map((iso) => {
         const d = new Date(iso);
@@ -290,7 +396,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       // remarcar = criar o novo e só então cancelar o antigo (nunca perde o horário)
       if (rescheduleId) {
         const old = appointments.find((a) => a.id === rescheduleId);
-        await api(`/agenda/${rescheduleId}/cancel`, { method: 'PATCH', body: {} });
+        await api(`/agenda/${rescheduleId}/cancel`, {
+          method: 'PATCH',
+          body: {},
+        });
         if (old && old.date !== input.date) await loadDay(old.date);
       }
       await loadDay(input.date);
@@ -301,7 +410,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const completeAppointment = useCallback(
     async (id: string, amount: number, paymentMethod: PaymentMethod) => {
       const target = appointments.find((a) => a.id === id);
-      await api(`/agenda/${id}/done`, { method: 'PATCH', body: { amount, paymentMethod } });
+      await api(`/agenda/${id}/done`, {
+        method: 'PATCH',
+        body: { amount, paymentMethod },
+      });
       if (target) await loadDay(target.date);
     },
     [api, appointments, loadDay],
@@ -320,8 +432,13 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const createService = useCallback(
     async (name: string) => {
-      const created = await api<CatalogService>('/services', { method: 'POST', body: { name } });
-      setCatalog((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+      const created = await api<CatalogService>('/services', {
+        method: 'POST',
+        body: { name },
+      });
+      setCatalog((prev) =>
+        [...prev, created].sort((a, b) => a.name.localeCompare(b.name)),
+      );
     },
     [api],
   );
@@ -336,28 +453,54 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   );
 
   const saveOffer = useCallback(
-    async (professionalId: string, serviceId: string, price: number, durationMinutes: number) => {
-      const saved = await api<ProfessionalService>(`/members/${professionalId}/services`, {
-        method: 'PUT',
-        body: { serviceId, price, durationMinutes },
-      });
-      setOffers((prev) => [...prev.filter((o) => !(o.professionalId === professionalId && o.serviceId === serviceId)), saved]);
+    async (
+      professionalId: string,
+      serviceId: string,
+      price: number,
+      durationMinutes: number,
+    ) => {
+      const saved = await api<ProfessionalService>(
+        `/members/${professionalId}/services`,
+        {
+          method: 'PUT',
+          body: { serviceId, price, durationMinutes },
+        },
+      );
+      setOffers((prev) => [
+        ...prev.filter(
+          (o) =>
+            !(o.professionalId === professionalId && o.serviceId === serviceId),
+        ),
+        saved,
+      ]);
     },
     [api],
   );
 
   const removeOffer = useCallback(
     async (professionalId: string, serviceId: string) => {
-      await api<void>(`/members/${professionalId}/services/${serviceId}`, { method: 'DELETE' });
-      setOffers((prev) => prev.filter((o) => !(o.professionalId === professionalId && o.serviceId === serviceId)));
+      await api<void>(`/members/${professionalId}/services/${serviceId}`, {
+        method: 'DELETE',
+      });
+      setOffers((prev) =>
+        prev.filter(
+          (o) =>
+            !(o.professionalId === professionalId && o.serviceId === serviceId),
+        ),
+      );
     },
     [api],
   );
 
   const createMember = useCallback(
     async (input: NewMemberInput) => {
-      const created = await api<TeamMember>('/members/employees', { method: 'POST', body: input });
-      setTeam((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+      const created = await api<TeamMember>('/members/employees', {
+        method: 'POST',
+        body: input,
+      });
+      setTeam((prev) =>
+        [...prev, created].sort((a, b) => a.name.localeCompare(b.name)),
+      );
       setSchedules((prev) => ({ ...prev, [created.id]: [] }));
     },
     [api],
@@ -365,17 +508,24 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const saveSchedule = useCallback(
     async (professionalId: string, days: ScheduleDay[]) => {
-      const saved = await api<ScheduleDay[]>(`/members/${professionalId}/schedule`, { method: 'PUT', body: { days } });
+      const saved = await api<ScheduleDay[]>(
+        `/members/${professionalId}/schedule`,
+        { method: 'PUT', body: { days } },
+      );
       setSchedules((prev) => ({ ...prev, [professionalId]: saved }));
     },
     [api],
   );
 
-  const sortByName = <T extends { name: string }>(rows: T[]) => [...rows].sort((a, b) => a.name.localeCompare(b.name));
+  const sortByName = <T extends { name: string }>(rows: T[]) =>
+    [...rows].sort((a, b) => a.name.localeCompare(b.name));
 
   const createStockItem = useCallback(
     async (input: CreateStockItemInput) => {
-      const created = await api<ApiStockItem>('/stock-items', { method: 'POST', body: input });
+      const created = await api<ApiStockItem>('/stock-items', {
+        method: 'POST',
+        body: input,
+      });
       setStockItems((prev) => sortByName([...prev, created]));
     },
     [api],
@@ -383,7 +533,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const adjustStock = useCallback(
     async (id: string, delta: number) => {
-      const updated = await api<ApiStockItem>(`/stock-items/${id}/quantity`, { method: 'PATCH', body: { delta } });
+      const updated = await api<ApiStockItem>(`/stock-items/${id}/quantity`, {
+        method: 'PATCH',
+        body: { delta },
+      });
       setStockItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
     },
     [api],
@@ -399,7 +552,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const createProduct = useCallback(
     async (input: CreateProductInput) => {
-      const created = await api<ApiProduct>('/products', { method: 'POST', body: input });
+      const created = await api<ApiProduct>('/products', {
+        method: 'POST',
+        body: input,
+      });
       setProductItems((prev) => sortByName([...prev, created]));
     },
     [api],
@@ -407,7 +563,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const updateProduct = useCallback(
     async (id: string, patch: UpdateProductInput) => {
-      const updated = await api<ApiProduct>(`/products/${id}`, { method: 'PATCH', body: patch });
+      const updated = await api<ApiProduct>(`/products/${id}`, {
+        method: 'PATCH',
+        body: patch,
+      });
       setProductItems((prev) => prev.map((p) => (p.id === id ? updated : p)));
     },
     [api],
@@ -425,8 +584,17 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     (memberId: string, pct: number) => {
       const rate = Math.max(0, Math.min(80, pct));
       const previous = team;
-      setTeam((prev) => prev.map((m) => (m.id === memberId && m.role === 'employee' ? { ...m, commissionRate: rate } : m)));
-      api<TeamMember>(`/members/employees/${memberId}`, { method: 'PATCH', body: { commissionRate: rate } }).catch(() => {
+      setTeam((prev) =>
+        prev.map((m) =>
+          m.id === memberId && m.role === 'employee'
+            ? { ...m, commissionRate: rate }
+            : m,
+        ),
+      );
+      api<TeamMember>(`/members/employees/${memberId}`, {
+        method: 'PATCH',
+        body: { commissionRate: rate },
+      }).catch(() => {
         setTeam(previous);
         showToast('Não foi possível salvar a comissão');
       });
@@ -440,7 +608,11 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const closeCash = useCallback(() => {
     const now = new Date();
-    setCashClosedAt(String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'));
+    setCashClosedAt(
+      String(now.getHours()).padStart(2, '0') +
+        ':' +
+        String(now.getMinutes()).padStart(2, '0'),
+    );
   }, []);
   const reopenCash = useCallback(() => setCashClosedAt(null), []);
 
@@ -457,12 +629,19 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleHourOpen = useCallback((day: number) => {
-    setHours((prev) => prev.map((h) => (h.day === day ? { ...h, open: !h.open } : h)));
+    setHours((prev) =>
+      prev.map((h) => (h.day === day ? { ...h, open: !h.open } : h)),
+    );
   }, []);
 
-  const updateHourRange = useCallback((day: number, patch: Partial<Pick<ShopHours, 'from' | 'to'>>) => {
-    setHours((prev) => prev.map((h) => (h.day === day ? { ...h, ...patch } : h)));
-  }, []);
+  const updateHourRange = useCallback(
+    (day: number, patch: Partial<Pick<ShopHours, 'from' | 'to'>>) => {
+      setHours((prev) =>
+        prev.map((h) => (h.day === day ? { ...h, ...patch } : h)),
+      );
+    },
+    [],
+  );
 
   const value = useMemo<AdminDataValue>(
     () => ({
@@ -575,22 +754,35 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <AdminDataContext.Provider value={value}>{children}</AdminDataContext.Provider>;
+  return (
+    <AdminDataContext.Provider value={value}>
+      {children}
+    </AdminDataContext.Provider>
+  );
 }
 
 export function useAdminData(): AdminDataValue {
   const ctx = useContext(AdminDataContext);
-  if (!ctx) throw new Error('useAdminData deve ser usado dentro de <AdminDataProvider>');
+  if (!ctx)
+    throw new Error(
+      'useAdminData deve ser usado dentro de <AdminDataProvider>',
+    );
   return ctx;
 }
 
-const ROLE_TEXT = { owner: 'Dono', manager: 'Gerente', employee: 'Profissional' } as const;
+const ROLE_TEXT = {
+  owner: 'Dono',
+  manager: 'Gerente',
+  employee: 'Profissional',
+} as const;
 
 /** Visão antiga (Barber) de um membro da equipe, para as telas ainda não integradas. */
 function toBarber(member: TeamMember, week: ScheduleDay[]): Barber {
   const worked = week.map((d) => d.weekday);
   const first = week[0];
-  const withBreak = week.find((d) => d.breakStartMinute != null && d.breakEndMinute != null);
+  const withBreak = week.find(
+    (d) => d.breakStartMinute != null && d.breakEndMinute != null,
+  );
   const names = member.name.trim().split(/\s+/);
   return {
     id: member.id,
@@ -598,8 +790,12 @@ function toBarber(member: TeamMember, week: ScheduleDay[]): Barber {
     short: names[0] ?? member.name,
     initials: initials(member.name),
     role: ROLE_TEXT[member.role],
-    start: week.length ? Math.min(...week.map((d) => d.startMinute)) : (first?.startMinute ?? 540),
-    end: week.length ? Math.max(...week.map((d) => d.endMinute)) : (first?.endMinute ?? 1080),
+    start: week.length
+      ? Math.min(...week.map((d) => d.startMinute))
+      : (first?.startMinute ?? 540),
+    end: week.length
+      ? Math.max(...week.map((d) => d.endMinute))
+      : (first?.endMinute ?? 1080),
     brk: [withBreak?.breakStartMinute ?? 0, withBreak?.breakEndMinute ?? 0],
     off: ([0, 1, 2, 3, 4, 5, 6] as const).filter((d) => !worked.includes(d)),
     revenue: 0,

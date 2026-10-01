@@ -33,9 +33,10 @@ export function freeIntervals(
   busy: Interval[],
 ): Interval[] {
   return busy
-    .reduce<Interval[]>((free, b) => subtract(free, b), [
-      { start: work.start, end: work.end },
-    ])
+    .reduce<Interval[]>(
+      (free, b) => subtract(free, b),
+      [{ start: work.start, end: work.end }],
+    )
     .sort((a, b) => a.start - b.start);
 }
 

@@ -71,19 +71,28 @@ export class AgendaController {
   constructor(private readonly agenda: AgendaService) {}
 
   @Get()
-  day(@CurrentUser() caller: AccessTokenPayload, @Query() query: AgendaQueryDto) {
+  day(
+    @CurrentUser() caller: AccessTokenPayload,
+    @Query() query: AgendaQueryDto,
+  ) {
     return this.agenda.listDay(caller, query);
   }
 
   /** Free times for the counter (no 1 h notice). */
   @Get('slots')
-  slots(@CurrentUser() caller: AccessTokenPayload, @Query() query: SlotsQueryDto) {
+  slots(
+    @CurrentUser() caller: AccessTokenPayload,
+    @Query() query: SlotsQueryDto,
+  ) {
     return this.agenda.staffSlots(caller, query);
   }
 
   /** Booking made at the counter. */
   @Post('appointments')
-  book(@CurrentUser() caller: AccessTokenPayload, @Body() dto: CreateAppointmentDto) {
+  book(
+    @CurrentUser() caller: AccessTokenPayload,
+    @Body() dto: CreateAppointmentDto,
+  ) {
     return this.agenda.staffBook(caller, dto);
   }
 
@@ -97,7 +106,10 @@ export class AgendaController {
   }
 
   @Patch(':id/cancel')
-  cancel(@CurrentUser() caller: AccessTokenPayload, @Param() { id }: IdParamDto) {
+  cancel(
+    @CurrentUser() caller: AccessTokenPayload,
+    @Param() { id }: IdParamDto,
+  ) {
     return this.agenda.staffCancel(caller, id);
   }
 }

@@ -10,7 +10,11 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 150ms, border-color 150ms, color 150ms, opacity 150ms;
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    color 150ms,
+    opacity 150ms;
   white-space: nowrap;
 }
 .btn:disabled {

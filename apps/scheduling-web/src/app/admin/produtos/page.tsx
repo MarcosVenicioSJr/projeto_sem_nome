@@ -15,7 +15,15 @@ const EMPTY = { name: '', category: '', price: '', cost: '', quantity: '0' };
 
 /** Itens à venda no balcão, com quantidade própria (separada do estoque de consumíveis). */
 export default function ProdutosPage() {
-  const { productItems, loading, loadError, createProduct, updateProduct, removeProduct, showToast } = useAdminData();
+  const {
+    productItems,
+    loading,
+    loadError,
+    createProduct,
+    updateProduct,
+    removeProduct,
+    showToast,
+  } = useAdminData();
   const { isManagement } = useSession();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -23,7 +31,8 @@ export default function ProdutosPage() {
   const [form, setForm] = useState(EMPTY);
   const [busy, setBusy] = useState(false);
 
-  const fail = (e: unknown) => showToast(e instanceof Error ? e.message : 'Algo deu errado');
+  const fail = (e: unknown) =>
+    showToast(e instanceof Error ? e.message : 'Algo deu errado');
 
   function openNew() {
     setEditing(null);
@@ -33,11 +42,22 @@ export default function ProdutosPage() {
 
   function openEdit(p: Product) {
     setEditing(p);
-    setForm({ name: p.name, category: p.category ?? '', price: String(p.price), cost: String(p.cost), quantity: String(p.quantity) });
+    setForm({
+      name: p.name,
+      category: p.category ?? '',
+      price: String(p.price),
+      cost: String(p.cost),
+      quantity: String(p.quantity),
+    });
     setDialogOpen(true);
   }
 
-  const valid = form.name.trim().length >= 2 && form.price !== '' && Number(form.price) >= 0 && Number(form.cost || 0) >= 0 && Number(form.quantity || 0) >= 0;
+  const valid =
+    form.name.trim().length >= 2 &&
+    form.price !== '' &&
+    Number(form.price) >= 0 &&
+    Number(form.cost || 0) >= 0 &&
+    Number(form.quantity || 0) >= 0;
 
   async function handleSave() {
     const body = {
@@ -51,7 +71,9 @@ export default function ProdutosPage() {
     try {
       if (editing) await updateProduct(editing.id, body);
       else await createProduct(body);
-      showToast(editing ? `${body.name} atualizado` : `${body.name} cadastrado`);
+      showToast(
+        editing ? `${body.name} atualizado` : `${body.name} cadastrado`,
+      );
       setDialogOpen(false);
     } catch (e) {
       fail(e);
@@ -75,8 +97,21 @@ export default function ProdutosPage() {
     { key: 'cat', header: 'Categoria', render: (r) => r.category ?? '—' },
     { key: 'price', header: 'Preço', render: (r) => brl(r.price) },
     { key: 'cost', header: 'Custo', render: (r) => brl(r.cost) },
-    { key: 'margin', header: 'Margem', render: (r) => `${r.price > 0 ? Math.round(((r.price - r.cost) / r.price) * 100) : 0}%` },
-    { key: 'qty', header: 'Em estoque', render: (r) => <span className={r.quantity === 0 ? styles.low : undefined}>{r.quantity}</span> },
+    {
+      key: 'margin',
+      header: 'Margem',
+      render: (r) =>
+        `${r.price > 0 ? Math.round(((r.price - r.cost) / r.price) * 100) : 0}%`,
+    },
+    {
+      key: 'qty',
+      header: 'Em estoque',
+      render: (r) => (
+        <span className={r.quantity === 0 ? styles.low : undefined}>
+          {r.quantity}
+        </span>
+      ),
+    },
     {
       key: 'actions',
       header: '',
@@ -95,7 +130,9 @@ export default function ProdutosPage() {
   if (!isManagement) {
     return (
       <div className={styles.page}>
-        <p style={{ color: 'var(--muted)' }}>Somente o dono ou gerente gerencia os produtos.</p>
+        <p style={{ color: 'var(--muted)' }}>
+          Somente o dono ou gerente gerencia os produtos.
+        </p>
       </div>
     );
   }
@@ -107,32 +144,82 @@ export default function ProdutosPage() {
           + Novo produto
         </Button>
       </div>
-      {loadError ? <p style={{ color: 'var(--danger)', fontSize: 13 }}>{loadError}</p> : null}
-      {loading ? <p style={{ color: 'var(--muted)', fontSize: 13 }}>Carregando…</p> : <Table columns={cols} rows={productItems} />}
+      {loadError ? (
+        <p style={{ color: 'var(--danger)', fontSize: 13 }}>{loadError}</p>
+      ) : null}
+      {loading ? (
+        <p style={{ color: 'var(--muted)', fontSize: 13 }}>Carregando…</p>
+      ) : (
+        <Table columns={cols} rows={productItems} />
+      )}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} title={editing ? 'Editar produto' : 'Novo produto'}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={editing ? 'Editar produto' : 'Novo produto'}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            marginBottom: 16,
+          }}
+        >
           <Field label="Nome">
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <Input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
           </Field>
           <Field label="Categoria (opcional)">
-            <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+            <Input
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+            />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gap: 12,
+            }}
+          >
             <Field label="Preço (R$)">
-              <Input type="number" min={0} step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+              />
             </Field>
             <Field label="Custo (R$)">
-              <Input type="number" min={0} step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} />
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.cost}
+                onChange={(e) => setForm({ ...form, cost: e.target.value })}
+              />
             </Field>
             <Field label="Quantidade">
-              <Input type="number" min={0} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
+              <Input
+                type="number"
+                min={0}
+                value={form.quantity}
+                onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+              />
             </Field>
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-          <Button variant="primary" disabled={busy || !valid} onClick={handleSave}>
+          <Button
+            variant="primary"
+            disabled={busy || !valid}
+            onClick={handleSave}
+          >
             Salvar
           </Button>
         </div>

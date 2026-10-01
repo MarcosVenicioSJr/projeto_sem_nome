@@ -167,7 +167,10 @@ export class AgendaService {
       clientRules &&
       startAt.getTime() < Date.now() + MIN_LEAD_MINUTES * MS_PER_MINUTE
     ) {
-      throw new AppException('errors.agenda.leadTime', HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new AppException(
+        'errors.agenda.leadTime',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
 
     const date = localDateOf(startAt);
@@ -192,7 +195,10 @@ export class AgendaService {
     const free = await this.freeTime(input.professionalId, date);
     const startMinute = (startAt.getTime() - from.getTime()) / MS_PER_MINUTE;
     if (!fits(free, startMinute, startMinute + duration)) {
-      throw new AppException('errors.agenda.slotUnavailable', HttpStatus.CONFLICT);
+      throw new AppException(
+        'errors.agenda.slotUnavailable',
+        HttpStatus.CONFLICT,
+      );
     }
 
     const appointment = await this.appointments.createWithServices(
@@ -228,10 +234,16 @@ export class AgendaService {
     const limit =
       appointment.startAt.getTime() - CANCEL_WINDOW_MINUTES * MS_PER_MINUTE;
     if (Date.now() > limit) {
-      throw new AppException('errors.agenda.cancelWindowClosed', HttpStatus.CONFLICT);
+      throw new AppException(
+        'errors.agenda.cancelWindowClosed',
+        HttpStatus.CONFLICT,
+      );
     }
     await this.appointments.cancel(appointment.id);
-    return toAppointment({ ...appointment, status: APPOINTMENT_STATUS.CANCELLED });
+    return toAppointment({
+      ...appointment,
+      status: APPOINTMENT_STATUS.CANCELLED,
+    });
   }
 
   // ── staff agenda ────────────────────────────────────────────────────
@@ -306,14 +318,14 @@ export class AgendaService {
 
   async listTimeOff(caller: AccessTokenPayload, professionalId: string) {
     await this.authorize(caller, professionalId);
-    return (await this.availability.listTimeOff(caller.tenantId, professionalId)).map(
-      (t) => ({
-        id: t.id,
-        date: t.date,
-        startMinute: t.startMinute,
-        endMinute: t.endMinute,
-      }),
-    );
+    return (
+      await this.availability.listTimeOff(caller.tenantId, professionalId)
+    ).map((t) => ({
+      id: t.id,
+      date: t.date,
+      startMinute: t.startMinute,
+      endMinute: t.endMinute,
+    }));
   }
 
   async createTimeOff(
@@ -329,7 +341,12 @@ export class AgendaService {
       startMinute: input.startMinute ?? null,
       endMinute: input.endMinute ?? null,
     });
-    return { id: t.id, date: t.date, startMinute: t.startMinute, endMinute: t.endMinute };
+    return {
+      id: t.id,
+      date: t.date,
+      startMinute: t.startMinute,
+      endMinute: t.endMinute,
+    };
   }
 
   async deleteTimeOff(
@@ -338,7 +355,13 @@ export class AgendaService {
     id: string,
   ): Promise<void> {
     await this.authorize(caller, professionalId);
-    if (!(await this.availability.deleteTimeOff(caller.tenantId, professionalId, id))) {
+    if (
+      !(await this.availability.deleteTimeOff(
+        caller.tenantId,
+        professionalId,
+        id,
+      ))
+    ) {
       throw new AppException('errors.agenda.notFound', HttpStatus.NOT_FOUND);
     }
   }
@@ -346,18 +369,31 @@ export class AgendaService {
   // ── helpers ─────────────────────────────────────────────────────────
 
   /** Working hours of the day minus break, time off and bookings (local minutes). */
-  private async freeTime(professionalId: string, date: string): Promise<Interval[]> {
-    const hours = await this.availability.dayOfWeek(professionalId, weekdayOf(date));
+  private async freeTime(
+    professionalId: string,
+    date: string,
+  ): Promise<Interval[]> {
+    const hours = await this.availability.dayOfWeek(
+      professionalId,
+      weekdayOf(date),
+    );
     if (!hours) return [];
     const timeOff = await this.availability.timeOffOn(professionalId, date);
     if (timeOff.some((t) => t.startMinute === null || t.endMinute === null)) {
       return [];
     }
     const { from, to } = dayRange(date);
-    const booked = await this.appointments.listActiveOverlapping(professionalId, from, to);
+    const booked = await this.appointments.listActiveOverlapping(
+      professionalId,
+      from,
+      to,
+    );
 
     const busy: Interval[] = [
-      ...timeOff.map((t) => ({ start: t.startMinute as number, end: t.endMinute as number })),
+      ...timeOff.map((t) => ({
+        start: t.startMinute as number,
+        end: t.endMinute as number,
+      })),
       ...booked.map((a) => ({
         start: (a.startAt.getTime() - from.getTime()) / MS_PER_MINUTE,
         end: (a.endAt.getTime() - from.getTime()) / MS_PER_MINUTE,
@@ -366,7 +402,10 @@ export class AgendaService {
     if (hours.breakStartMinute !== null && hours.breakEndMinute !== null) {
       busy.push({ start: hours.breakStartMinute, end: hours.breakEndMinute });
     }
-    return freeIntervals({ start: hours.startMinute, end: hours.endMinute }, busy);
+    return freeIntervals(
+      { start: hours.startMinute, end: hours.endMinute },
+      busy,
+    );
   }
 
   /** The requested services, as offered by the professional (price/duration frozen). */
@@ -411,7 +450,10 @@ export class AgendaService {
   }
 
   private async professionalOrFail(tenantId: string, professionalId: string) {
-    const professional = await this.members.findInTenant(tenantId, professionalId);
+    const professional = await this.members.findInTenant(
+      tenantId,
+      professionalId,
+    );
     if (!professional) {
       throw new AppException(
         'errors.agenda.professionalNotFound',

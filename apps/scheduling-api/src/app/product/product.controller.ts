@@ -10,7 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard, Roles, RolesGuard, TenantId } from '../auth/jwt';
-import { CreateProductDto, IdParamDto, UpdateProductDto } from './dto/product.dto';
+import {
+  CreateProductDto,
+  IdParamDto,
+  UpdateProductDto,
+} from './dto/product.dto';
 import { ProductService } from './product.service';
 
 /** Products for sale. Owner/manager only. */

@@ -12,7 +12,20 @@ type ReportKey = 'faturamento' | 'clientes';
 type Row = [label: string, value: number];
 
 const MONTHS_BACK = 6;
-const MONTH_ABBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const MONTH_ABBR = [
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
+];
 
 /** Últimos meses, do mais antigo ao atual, como `YYYY-MM`. */
 function lastMonths(count: number): string[] {
@@ -23,7 +36,8 @@ function lastMonths(count: number): string[] {
   });
 }
 
-const monthLabel = (m: string) => `${MONTH_ABBR[Number(m.slice(5)) - 1]}/${m.slice(2, 4)}`;
+const monthLabel = (m: string) =>
+  `${MONTH_ABBR[Number(m.slice(5)) - 1]}/${m.slice(2, 4)}`;
 
 /** Relatórios mensais (granularidade fixa, sem filtro de período). */
 export default function RelatoriosPage() {
@@ -50,18 +64,29 @@ export default function RelatoriosPage() {
         setRevenue(rows.map((r) => [monthLabel(r.m), r.revenue]));
         setClients(rows.map((r) => [monthLabel(r.m), r.clients]));
       })
-      .catch((e) => setError(e instanceof Error ? e.message : 'Não foi possível carregar os relatórios.'));
+      .catch((e) =>
+        setError(
+          e instanceof Error
+            ? e.message
+            : 'Não foi possível carregar os relatórios.',
+        ),
+      );
   }, [api, isManagement, months]);
 
   if (!isManagement) {
     return (
       <div className={styles.page}>
-        <p style={{ color: 'var(--muted)' }}>Somente o dono ou gerente acessa os relatórios.</p>
+        <p style={{ color: 'var(--muted)' }}>
+          Somente o dono ou gerente acessa os relatórios.
+        </p>
       </div>
     );
   }
 
-  const reports: Record<ReportKey, { title: string; sub: string; rows: Row[]; format: (v: number) => string }> = {
+  const reports: Record<
+    ReportKey,
+    { title: string; sub: string; rows: Row[]; format: (v: number) => string }
+  > = {
     faturamento: {
       title: 'Faturamento por mês',
       sub: 'Soma das receitas de atendimentos concluídos',
@@ -75,13 +100,24 @@ export default function RelatoriosPage() {
       format: String,
     },
   };
-  const list = (Object.keys(reports) as ReportKey[]).map((key) => ({ key, title: reports[key].title, sub: reports[key].sub }));
+  const list = (Object.keys(reports) as ReportKey[]).map((key) => ({
+    key,
+    title: reports[key].title,
+    sub: reports[key].sub,
+  }));
   const current = reports[active];
   const max = Math.max(1, ...current.rows.map(([, v]) => v));
 
   function exportCsv() {
-    const csv = ['mês;valor', ...current.rows.map(([label, value]) => `${label};${String(value).replace('.', ',')}`)].join('\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const csv = [
+      'mês;valor',
+      ...current.rows.map(
+        ([label, value]) => `${label};${String(value).replace('.', ',')}`,
+      ),
+    ].join('\n');
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: 'text/csv;charset=utf-8' }),
+    );
     const a = document.createElement('a');
     a.href = url;
     a.download = `${active}.csv`;
@@ -97,7 +133,10 @@ export default function RelatoriosPage() {
           <button
             key={item.key}
             type="button"
-            className={[styles.listItem, active === item.key ? styles.listItemActive : ''].join(' ')}
+            className={[
+              styles.listItem,
+              active === item.key ? styles.listItemActive : '',
+            ].join(' ')}
             onClick={() => setActive(item.key)}
           >
             <span className={styles.listTitle}>{item.title}</span>
@@ -114,7 +153,9 @@ export default function RelatoriosPage() {
           </div>
           <Button onClick={exportCsv}>Exportar CSV</Button>
         </div>
-        {error ? <p style={{ color: 'var(--danger)', fontSize: 13 }}>{error}</p> : null}
+        {error ? (
+          <p style={{ color: 'var(--danger)', fontSize: 13 }}>{error}</p>
+        ) : null}
         <div className={styles.bars}>
           {current.rows.map(([label, value], i) => (
             <div key={label} className={styles.barRow}>
@@ -125,7 +166,13 @@ export default function RelatoriosPage() {
               <div className={styles.barTrack}>
                 <div
                   className={styles.barFill}
-                  style={{ width: `${(value / max) * 100}%`, background: i === current.rows.length - 1 ? 'var(--accent-bg)' : 'var(--surface-3)' }}
+                  style={{
+                    width: `${(value / max) * 100}%`,
+                    background:
+                      i === current.rows.length - 1
+                        ? 'var(--accent-bg)'
+                        : 'var(--surface-3)',
+                  }}
                 />
               </div>
             </div>

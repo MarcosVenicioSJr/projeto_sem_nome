@@ -15,7 +15,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (status !== 'authenticated') {
     return (
-      <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: 'var(--bg)', color: 'var(--muted)' }}>
+      <div
+        style={{
+          minHeight: '100dvh',
+          display: 'grid',
+          placeItems: 'center',
+          background: 'var(--bg)',
+          color: 'var(--muted)',
+        }}
+      >
         Carregando…
       </div>
     );

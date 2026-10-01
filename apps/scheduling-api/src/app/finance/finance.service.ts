@@ -56,7 +56,9 @@ export class FinanceService {
   async updateExpense(tenantId: string, id: string, input: UpdateExpenseInput) {
     await this.expenseOrFail(tenantId, id);
     await this.expenses.update(tenantId, id, {
-      ...(input.description !== undefined && { description: input.description }),
+      ...(input.description !== undefined && {
+        description: input.description,
+      }),
       ...(input.category !== undefined && { category: input.category }),
       ...(input.amount !== undefined && { amount: String(input.amount) }),
       ...(input.date !== undefined && { date: input.date }),
@@ -110,7 +112,10 @@ export class FinanceService {
 
   async monthlyRevenue(tenantId: string, month: string) {
     const { from, to } = monthRange(month);
-    return { month, total: await this.appointments.revenueTotal(tenantId, from, to) };
+    return {
+      month,
+      total: await this.appointments.revenueTotal(tenantId, from, to),
+    };
   }
 
   async monthlyClients(tenantId: string, month: string) {

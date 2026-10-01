@@ -8,6 +8,8 @@ export function Button({
   className,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
-  const cls = [styles.btn, styles[variant], className].filter(Boolean).join(' ');
+  const cls = [styles.btn, styles[variant], className]
+    .filter(Boolean)
+    .join(' ');
   return <button type="button" className={cls} {...props} />;
 }

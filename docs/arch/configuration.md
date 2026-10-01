@@ -20,23 +20,23 @@
 
 ## Variables
 
-| Var | Default | Description |
-|---|---|---|
-| `NODE_ENV` | `development` | `development` \| `test` \| `production` |
-| `PORT` | `3000` | API HTTP port |
-| `JWT_SECRET` | — (**required**, ≥16 chars) | JWT signing secret. TTLs (15m/5h) are fixed in code, not env |
-| `DB_HOST` | `localhost` | Postgres host |
-| `DB_PORT` | `5432` | Postgres port |
-| `DB_USER` | `scheduling` | database user |
-| `DB_PASSWORD` | `scheduling` | database password |
-| `DB_NAME` | `scheduling` | database name |
-| `DB_LOGGING` | `false` | log SQL |
-| `MAIL_HOST` | `localhost` | SMTP host (local: Mailpit; prod: e.g. `in-v3.mailjet.com`) |
-| `MAIL_PORT` | `1025` | SMTP port (Mailjet: `587`) |
-| `MAIL_SECURE` | `false` | implicit TLS (port 465) |
-| `MAIL_USER` | `` | SMTP user; empty = no auth (Mailpit) |
-| `MAIL_PASSWORD` | `` | SMTP password/secret |
-| `MAIL_FROM` | `Scheduling <no-reply@scheduling.local>` | sender |
+| Var             | Default                                  | Description                                                  |
+| --------------- | ---------------------------------------- | ------------------------------------------------------------ |
+| `NODE_ENV`      | `development`                            | `development` \| `test` \| `production`                      |
+| `PORT`          | `3000`                                   | API HTTP port                                                |
+| `JWT_SECRET`    | — (**required**, ≥16 chars)              | JWT signing secret. TTLs (15m/5h) are fixed in code, not env |
+| `DB_HOST`       | `localhost`                              | Postgres host                                                |
+| `DB_PORT`       | `5432`                                   | Postgres port                                                |
+| `DB_USER`       | `scheduling`                             | database user                                                |
+| `DB_PASSWORD`   | `scheduling`                             | database password                                            |
+| `DB_NAME`       | `scheduling`                             | database name                                                |
+| `DB_LOGGING`    | `false`                                  | log SQL                                                      |
+| `MAIL_HOST`     | `localhost`                              | SMTP host (local: Mailpit; prod: e.g. `in-v3.mailjet.com`)   |
+| `MAIL_PORT`     | `1025`                                   | SMTP port (Mailjet: `587`)                                   |
+| `MAIL_SECURE`   | `false`                                  | implicit TLS (port 465)                                      |
+| `MAIL_USER`     | ``                                       | SMTP user; empty = no auth (Mailpit)                         |
+| `MAIL_PASSWORD` | ``                                       | SMTP password/secret                                         |
+| `MAIL_FROM`     | `Scheduling <no-reply@scheduling.local>` | sender                                                       |
 
 Boolean vars accept exactly `"true"` / `"false"`. The DB schema is managed by
 Atlas ([migrations.md](./migrations.md)) — there is no `DB_SYNCHRONIZE`.
@@ -66,10 +66,10 @@ chama `/api/...` e `next.config.js` (`rewrites`) repassa para a API — sem CORS
 Nome, slug e dono da empresa vêm da API (`GET /tenants/me` + `GET /user/me`) pela
 sessão; nada disso é fixo em env vars.
 
-| Var | Default | Descrição |
-|---|---|---|
-| `API_PROXY_TARGET` | `http://localhost:3000` | onde o Next repassa `/api/*` (lida pelo servidor Next, sem prefixo `NEXT_PUBLIC_`) |
-| `NEXT_PUBLIC_PUBLIC_BOOKING_URL` | `https://barberadmin.app` | base do link público de agendamento (`{base}/t/{slug}`) |
+| Var                              | Default                   | Descrição                                                                          |
+| -------------------------------- | ------------------------- | ---------------------------------------------------------------------------------- |
+| `API_PROXY_TARGET`               | `http://localhost:3000`   | onde o Next repassa `/api/*` (lida pelo servidor Next, sem prefixo `NEXT_PUBLIC_`) |
+| `NEXT_PUBLIC_PUBLIC_BOOKING_URL` | `https://barberadmin.app` | base do link público de agendamento (`{base}/t/{slug}`)                            |
 
 Dados que ainda não existem na API (endereço, telefone e CNPJ da empresa) ficam só
 no navegador, em `ShopProvider` (`admin/_lib/shop.tsx`).

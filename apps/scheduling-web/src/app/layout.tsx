@@ -21,9 +21,16 @@ export const metadata = {
   description: 'Portal administrativo para barbearias',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="pt-BR" className={`${archivo.variable} ${hankenGrotesk.variable}`}>
+    <html
+      lang="pt-BR"
+      className={`${archivo.variable} ${hankenGrotesk.variable}`}
+    >
       <body>
         <SessionProvider>{children}</SessionProvider>
       </body>

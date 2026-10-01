@@ -13,8 +13,19 @@ import type { ScheduleDay } from '@org/contracts';
 import { useSession } from '../../_lib/session';
 import { useAdminData, type NewMemberInput } from '../_lib/data';
 import { useNow } from '../_lib/use-now';
-import { decorateAll, barberLiveState, barberOccupancyPct } from '../_lib/selectors';
-import { brl, brl0, ddmm, hm, nowMinutes, WEEKDAYS_SHORT } from '../_lib/format';
+import {
+  decorateAll,
+  barberLiveState,
+  barberOccupancyPct,
+} from '../_lib/selectors';
+import {
+  brl,
+  brl0,
+  ddmm,
+  hm,
+  nowMinutes,
+  WEEKDAYS_SHORT,
+} from '../_lib/format';
 import type { Barber } from '../_lib/types';
 import styles from './page.module.css';
 
@@ -31,9 +42,27 @@ export default function EquipePage() {
 function EquipeView() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') as TeamTab) ?? 'barbeiros';
-  const [tab, setTab] = useState<TeamTab>(['barbeiros', 'horarios', 'comissoes'].includes(initialTab) ? initialTab : 'barbeiros');
+  const [tab, setTab] = useState<TeamTab>(
+    ['barbeiros', 'horarios', 'comissoes'].includes(initialTab)
+      ? initialTab
+      : 'barbeiros',
+  );
 
-  const { barbers, services, appointments, commissionPct, commissionPaid, setCommissionPct, payCommission, showToast, loading, loadError, schedules, createMember, saveSchedule } = useAdminData();
+  const {
+    barbers,
+    services,
+    appointments,
+    commissionPct,
+    commissionPaid,
+    setCommissionPct,
+    payCommission,
+    showToast,
+    loading,
+    loadError,
+    schedules,
+    createMember,
+    saveSchedule,
+  } = useAdminData();
   const { me, isManagement } = useSession();
   const [newOpen, setNewOpen] = useState(false);
   const [scheduleFor, setScheduleFor] = useState<Barber | null>(null);
@@ -41,7 +70,10 @@ function EquipeView() {
   const now = useNow();
   const nowMin = nowMinutes(now);
 
-  const decorated = useMemo(() => decorateAll(appointments, services, barbers), [appointments, services, barbers]);
+  const decorated = useMemo(
+    () => decorateAll(appointments, services, barbers),
+    [appointments, services, barbers],
+  );
   const today = decorated.filter((a) => a.date === 0);
 
   return (
@@ -56,8 +88,12 @@ function EquipeView() {
         onChange={setTab}
       />
 
-      {loadError ? <p style={{ color: 'var(--danger)', fontSize: 13 }}>{loadError}</p> : null}
-      {loading ? <p style={{ color: 'var(--muted)', fontSize: 13 }}>Carregando…</p> : null}
+      {loadError ? (
+        <p style={{ color: 'var(--danger)', fontSize: 13 }}>{loadError}</p>
+      ) : null}
+      {loading ? (
+        <p style={{ color: 'var(--muted)', fontSize: 13 }}>Carregando…</p>
+      ) : null}
 
       {tab === 'barbeiros' && isManagement ? (
         <div>
@@ -71,7 +107,9 @@ function EquipeView() {
         <div className={styles.cards}>
           {barbers.map((barber) => {
             const live = barberLiveState(barber, today, nowMin);
-            const todayCount = today.filter((a) => a.barberId === barber.id).length;
+            const todayCount = today.filter(
+              (a) => a.barberId === barber.id,
+            ).length;
             const occ = barberOccupancyPct(barber, today);
             return (
               <Card key={barber.id}>
@@ -85,7 +123,12 @@ function EquipeView() {
                   </div>
                 </div>
                 <div className={styles.cardState}>
-                  <span className={styles.dot} style={{ background: live.busy ? 'var(--accent)' : 'var(--faint)' }} />
+                  <span
+                    className={styles.dot}
+                    style={{
+                      background: live.busy ? 'var(--accent)' : 'var(--faint)',
+                    }}
+                  />
                   {live.state}
                 </div>
                 <div className={styles.metrics}>
@@ -99,10 +142,17 @@ function EquipeView() {
                   </div>
                   <div className={styles.metric}>
                     <span className={styles.metricLabel}>Comissão</span>
-                    <span className={styles.metricValue}>{commissionPct[barber.id]}%</span>
+                    <span className={styles.metricValue}>
+                      {commissionPct[barber.id]}%
+                    </span>
                   </div>
                 </div>
-                <Button style={{ width: '100%' }} onClick={() => router.push(`/admin/agenda?barber=${barber.id}`)}>
+                <Button
+                  style={{ width: '100%' }}
+                  onClick={() =>
+                    router.push(`/admin/agenda?barber=${barber.id}`)
+                  }
+                >
                   Ver agenda de hoje
                 </Button>
               </Card>
@@ -127,7 +177,9 @@ function EquipeView() {
             <tbody>
               {barbers.map((barber) => {
                 const week = schedules[barber.id] ?? [];
-                const withBreak = week.find((d) => d.breakStartMinute != null && d.breakEndMinute != null);
+                const withBreak = week.find(
+                  (d) => d.breakStartMinute != null && d.breakEndMinute != null,
+                );
                 return (
                   <tr key={barber.id}>
                     <td>{barber.name}</td>
@@ -135,14 +187,22 @@ function EquipeView() {
                       const day = week.find((w) => w.weekday === d);
                       return (
                         <td key={d} className={day ? undefined : styles.off}>
-                          {day ? `${hm(day.startMinute)}–${hm(day.endMinute)}` : 'Folga'}
+                          {day
+                            ? `${hm(day.startMinute)}–${hm(day.endMinute)}`
+                            : 'Folga'}
                         </td>
                       );
                     })}
-                    <td>{withBreak ? `${hm(withBreak.breakStartMinute as number)}–${hm(withBreak.breakEndMinute as number)}` : '—'}</td>
+                    <td>
+                      {withBreak
+                        ? `${hm(withBreak.breakStartMinute as number)}–${hm(withBreak.breakEndMinute as number)}`
+                        : '—'}
+                    </td>
                     <td>
                       {isManagement || me?.id === barber.id ? (
-                        <Button onClick={() => setScheduleFor(barber)}>Editar</Button>
+                        <Button onClick={() => setScheduleFor(barber)}>
+                          Editar
+                        </Button>
                       ) : null}
                     </td>
                   </tr>
@@ -185,7 +245,14 @@ function EquipeView() {
   );
 }
 
-const EMPTY_MEMBER = { name: '', email: '', phone: '', password: '', role: 'employee' as 'employee' | 'manager', commission: '40' };
+const EMPTY_MEMBER = {
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  role: 'employee' as 'employee' | 'manager',
+  commission: '40',
+};
 
 function NewMemberDialog({
   open,
@@ -199,7 +266,11 @@ function NewMemberDialog({
   const [form, setForm] = useState(EMPTY_MEMBER);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const valid = form.name.trim().length >= 2 && form.email.includes('@') && form.phone.length === 11 && form.password.length >= 8;
+  const valid =
+    form.name.trim().length >= 2 &&
+    form.email.includes('@') &&
+    form.phone.length === 11 &&
+    form.password.length >= 8;
 
   async function submit() {
     setBusy(true);
@@ -211,7 +282,10 @@ function NewMemberDialog({
         phone: form.phone,
         password: form.password,
         role: form.role,
-        commissionRate: form.role === 'employee' && form.commission !== '' ? Number(form.commission) : null,
+        commissionRate:
+          form.role === 'employee' && form.commission !== ''
+            ? Number(form.commission)
+            : null,
       });
       setForm(EMPTY_MEMBER);
       onClose();
@@ -224,39 +298,90 @@ function NewMemberDialog({
 
   return (
     <Dialog open={open} onClose={onClose} title="Novo profissional">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          marginBottom: 16,
+        }}
+      >
         <Field label="Nome">
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
         </Field>
         <Field label="E-mail (será o login)">
-          <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <Input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
         </Field>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}
+        >
           <Field label="Telefone (com DDD)">
             <Input
               inputMode="numeric"
               value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 11) })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  phone: e.target.value.replace(/\D/g, '').slice(0, 11),
+                })
+              }
             />
           </Field>
-          <Field label="Senha inicial" hint="8+ caracteres, com maiúscula, minúscula e número">
-            <Input type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <Field
+            label="Senha inicial"
+            hint="8+ caracteres, com maiúscula, minúscula e número"
+          >
+            <Input
+              type="password"
+              autoComplete="new-password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
           </Field>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}
+        >
           <Field label="Papel">
-            <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as 'employee' | 'manager' })}>
+            <Select
+              value={form.role}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  role: e.target.value as 'employee' | 'manager',
+                })
+              }
+            >
               <option value="employee">Profissional</option>
               <option value="manager">Gerente</option>
             </Select>
           </Field>
           {form.role === 'employee' ? (
             <Field label="Comissão (%)">
-              <Input type="number" min={0} max={100} value={form.commission} onChange={(e) => setForm({ ...form, commission: e.target.value })} />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={form.commission}
+                onChange={(e) =>
+                  setForm({ ...form, commission: e.target.value })
+                }
+              />
             </Field>
           ) : null}
         </div>
-        {error ? <p style={{ color: 'var(--danger)', fontSize: 13, margin: 0 }}>{error}</p> : null}
+        {error ? (
+          <p style={{ color: 'var(--danger)', fontSize: 13, margin: 0 }}>
+            {error}
+          </p>
+        ) : null}
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <Button onClick={onClose}>Cancelar</Button>
@@ -272,7 +397,8 @@ const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
 };
-const toHHMM = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+const toHHMM = (min: number) =>
+  `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
 
 type DayDraft = { weekday: number; on: boolean; from: string; to: string };
 
@@ -297,7 +423,9 @@ function ScheduleDialog({
 
   // (re)inicializa o rascunho ao abrir para outro profissional
   if (barber && loadedFor !== barber.id) {
-    const withBreak = week.find((d) => d.breakStartMinute != null && d.breakEndMinute != null);
+    const withBreak = week.find(
+      (d) => d.breakStartMinute != null && d.breakEndMinute != null,
+    );
     setLoadedFor(barber.id);
     setError(null);
     setHasBreak(week.length === 0 || !!withBreak);
@@ -306,14 +434,20 @@ function ScheduleDialog({
     setDays(
       [1, 2, 3, 4, 5, 6, 0].map((weekday) => {
         const d = week.find((w) => w.weekday === weekday);
-        return { weekday, on: d ? true : week.length === 0 && weekday !== 0, from: toHHMM(d?.startMinute ?? 540), to: toHHMM(d?.endMinute ?? 1080) };
+        return {
+          weekday,
+          on: d ? true : week.length === 0 && weekday !== 0,
+          from: toHHMM(d?.startMinute ?? 540),
+          to: toHHMM(d?.endMinute ?? 1080),
+        };
       }),
     );
   }
   if (!barber && loadedFor !== null) setLoadedFor(null);
 
   const invalid =
-    days.some((d) => d.on && toMinutes(d.from) >= toMinutes(d.to)) || (hasBreak && toMinutes(breakFrom) >= toMinutes(breakTo));
+    days.some((d) => d.on && toMinutes(d.from) >= toMinutes(d.to)) ||
+    (hasBreak && toMinutes(breakFrom) >= toMinutes(breakTo));
 
   async function submit() {
     if (!barber) return;
@@ -341,15 +475,47 @@ function ScheduleDialog({
   }
 
   return (
-    <Dialog open={barber !== null} onClose={onClose} title={barber ? `Horários de ${barber.name}` : ''}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+    <Dialog
+      open={barber !== null}
+      onClose={onClose}
+      title={barber ? `Horários de ${barber.name}` : ''}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          marginBottom: 16,
+        }}
+      >
         {days.map((d, i) => (
-          <div key={d.weekday} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr', alignItems: 'center', gap: 10 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+          <div
+            key={d.weekday}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '110px 1fr 1fr',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 14,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={d.on}
-                onChange={(e) => setDays(days.map((x, j) => (j === i ? { ...x, on: e.target.checked } : x)))}
+                onChange={(e) =>
+                  setDays(
+                    days.map((x, j) =>
+                      j === i ? { ...x, on: e.target.checked } : x,
+                    ),
+                  )
+                }
               />
               {WEEKDAYS_SHORT[d.weekday]}
             </label>
@@ -357,28 +523,78 @@ function ScheduleDialog({
               type="time"
               disabled={!d.on}
               value={d.from}
-              onChange={(e) => setDays(days.map((x, j) => (j === i ? { ...x, from: e.target.value } : x)))}
+              onChange={(e) =>
+                setDays(
+                  days.map((x, j) =>
+                    j === i ? { ...x, from: e.target.value } : x,
+                  ),
+                )
+              }
               aria-label={`Início ${WEEKDAYS_SHORT[d.weekday]}`}
             />
             <Input
               type="time"
               disabled={!d.on}
               value={d.to}
-              onChange={(e) => setDays(days.map((x, j) => (j === i ? { ...x, to: e.target.value } : x)))}
+              onChange={(e) =>
+                setDays(
+                  days.map((x, j) =>
+                    j === i ? { ...x, to: e.target.value } : x,
+                  ),
+                )
+              }
               aria-label={`Fim ${WEEKDAYS_SHORT[d.weekday]}`}
             />
           </div>
         ))}
-        <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr', alignItems: 'center', gap: 10, marginTop: 6 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
-            <input type="checkbox" checked={hasBreak} onChange={(e) => setHasBreak(e.target.checked)} />
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '110px 1fr 1fr',
+            alignItems: 'center',
+            gap: 10,
+            marginTop: 6,
+          }}
+        >
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 14,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={hasBreak}
+              onChange={(e) => setHasBreak(e.target.checked)}
+            />
             Intervalo
           </label>
-          <Input type="time" disabled={!hasBreak} value={breakFrom} onChange={(e) => setBreakFrom(e.target.value)} aria-label="Início do intervalo" />
-          <Input type="time" disabled={!hasBreak} value={breakTo} onChange={(e) => setBreakTo(e.target.value)} aria-label="Fim do intervalo" />
+          <Input
+            type="time"
+            disabled={!hasBreak}
+            value={breakFrom}
+            onChange={(e) => setBreakFrom(e.target.value)}
+            aria-label="Início do intervalo"
+          />
+          <Input
+            type="time"
+            disabled={!hasBreak}
+            value={breakTo}
+            onChange={(e) => setBreakTo(e.target.value)}
+            aria-label="Fim do intervalo"
+          />
         </div>
-        <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>O intervalo vale para todos os dias marcados. Dias desmarcados são folga.</p>
-        {error ? <p style={{ color: 'var(--danger)', fontSize: 13, margin: 0 }}>{error}</p> : null}
+        <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>
+          O intervalo vale para todos os dias marcados. Dias desmarcados são
+          folga.
+        </p>
+        {error ? (
+          <p style={{ color: 'var(--danger)', fontSize: 13, margin: 0 }}>
+            {error}
+          </p>
+        ) : null}
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <Button onClick={onClose}>Cancelar</Button>
@@ -414,7 +630,9 @@ function CommissionsTab({
     const commission = (b.revenue * pct) / 100;
     return { ...b, pct, commission, paid: !!commissionPaid[b.id] };
   });
-  const total = rows.filter((r) => !r.paid).reduce((sum, r) => sum + r.commission, 0);
+  const total = rows
+    .filter((r) => !r.paid)
+    .reduce((sum, r) => sum + r.commission, 0);
 
   const cols: Column<(typeof rows)[number]>[] = [
     { key: 'name', header: 'Profissional', render: (r) => r.name },
@@ -424,11 +642,21 @@ function CommissionsTab({
       align: 'center',
       render: (r) => (
         <div className={styles.stepper}>
-          <button type="button" className={styles.stepBtn} onClick={() => setCommissionPct(r.id, r.pct - 5)} aria-label={`Diminuir % de ${r.name}`}>
+          <button
+            type="button"
+            className={styles.stepBtn}
+            onClick={() => setCommissionPct(r.id, r.pct - 5)}
+            aria-label={`Diminuir % de ${r.name}`}
+          >
             −
           </button>
           <span className="tabularNums">{r.pct}%</span>
-          <button type="button" className={styles.stepBtn} onClick={() => setCommissionPct(r.id, r.pct + 5)} aria-label={`Aumentar % de ${r.name}`}>
+          <button
+            type="button"
+            className={styles.stepBtn}
+            onClick={() => setCommissionPct(r.id, r.pct + 5)}
+            aria-label={`Aumentar % de ${r.name}`}
+          >
             +
           </button>
         </div>
@@ -442,12 +670,16 @@ function CommissionsTab({
       align: 'right',
       render: (r) =>
         r.paid ? (
-          <span style={{ color: 'var(--ok)', fontSize: 12, fontWeight: 600 }}>✓ Pago em {ddmm(0)}</span>
+          <span style={{ color: 'var(--ok)', fontSize: 12, fontWeight: 600 }}>
+            ✓ Pago em {ddmm(0)}
+          </span>
         ) : (
           <Button
             onClick={() => {
               payCommission(r.id);
-              showToast(`Pagamento de ${brl(r.commission)} registrado para ${r.short}`);
+              showToast(
+                `Pagamento de ${brl(r.commission)} registrado para ${r.short}`,
+              );
             }}
           >
             Registrar pagamento
@@ -467,7 +699,8 @@ function CommissionsTab({
       </div>
       <Table columns={cols} rows={rows} />
       <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12 }}>
-        A % fixa vale para todos os serviços do profissional. Venda de produtos não entra na comissão.
+        A % fixa vale para todos os serviços do profissional. Venda de produtos
+        não entra na comissão.
       </p>
     </Card>
   );

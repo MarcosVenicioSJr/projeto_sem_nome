@@ -30,7 +30,16 @@ export interface ComputeFreeSlotsInput {
  * relógio, estado ou APIs — para ser fácil de testar.
  */
 export function computeFreeSlots(input: ComputeFreeSlotsInput): number[] {
-  const { barberStart, barberEnd, barberBreak, isClosed, busy, duration, step = 15, minStart } = input;
+  const {
+    barberStart,
+    barberEnd,
+    barberBreak,
+    isClosed,
+    busy,
+    duration,
+    step = 15,
+    minStart,
+  } = input;
   if (isClosed || duration <= 0) return [];
 
   const ranges: BusyRange[] = [...busy, barberBreak];
@@ -38,7 +47,9 @@ export function computeFreeSlots(input: ComputeFreeSlotsInput): number[] {
 
   for (let start = barberStart; start + duration <= barberEnd; start += step) {
     if (minStart != null && start < minStart) continue;
-    const overlaps = ranges.some(([busyStart, busyEnd]) => start < busyEnd && start + duration > busyStart);
+    const overlaps = ranges.some(
+      ([busyStart, busyEnd]) => start < busyEnd && start + duration > busyStart,
+    );
     if (overlaps) continue;
     out.push(start);
   }
@@ -48,7 +59,9 @@ export function computeFreeSlots(input: ComputeFreeSlotsInput): number[] {
 export interface FreeSlotsForDayParams {
   barber: Pick<Barber, 'start' | 'end' | 'brk' | 'off'>;
   /** agendamentos existentes do barbeiro nesse dia, já com a duração resolvida */
-  existingAppointments: Array<Pick<Appointment, 'id' | 'start'> & { duration: number }>;
+  existingAppointments: Array<
+    Pick<Appointment, 'id' | 'start'> & { duration: number }
+  >;
   /** duração do serviço que se quer agendar, em minutos */
   duration: number;
   /** deslocamento em dias a partir de hoje (0 = hoje) */

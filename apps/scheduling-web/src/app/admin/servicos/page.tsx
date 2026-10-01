@@ -16,7 +16,18 @@ import styles from './page.module.css';
 type OfferDraft = { on: boolean; price: string; duration: string };
 
 export default function ServicosPage() {
-  const { catalog, offers, team, loading, loadError, createService, removeService, saveOffer, removeOffer, showToast } = useAdminData();
+  const {
+    catalog,
+    offers,
+    team,
+    loading,
+    loadError,
+    createService,
+    removeService,
+    saveOffer,
+    removeOffer,
+    showToast,
+  } = useAdminData();
   const { isManagement } = useSession();
 
   const [newOpen, setNewOpen] = useState(false);
@@ -25,7 +36,8 @@ export default function ServicosPage() {
   const [drafts, setDrafts] = useState<Record<string, OfferDraft>>({});
   const [busy, setBusy] = useState(false);
 
-  const fail = (e: unknown) => showToast(e instanceof Error ? e.message : 'Algo deu errado');
+  const fail = (e: unknown) =>
+    showToast(e instanceof Error ? e.message : 'Algo deu errado');
 
   async function handleCreate() {
     if (name.trim().length < 2) return;
@@ -55,7 +67,9 @@ export default function ServicosPage() {
   function openOffers(service: CatalogService) {
     const initial: Record<string, OfferDraft> = {};
     for (const member of team) {
-      const offer = offers.find((o) => o.serviceId === service.id && o.professionalId === member.id);
+      const offer = offers.find(
+        (o) => o.serviceId === service.id && o.professionalId === member.id,
+      );
       initial[member.id] = {
         on: !!offer,
         price: offer ? String(offer.price) : '',
@@ -66,7 +80,9 @@ export default function ServicosPage() {
     setEditing(service);
   }
 
-  const draftValid = (d: OfferDraft) => !d.on || (Number(d.price) >= 0 && d.price !== '' && Number(d.duration) >= 5);
+  const draftValid = (d: OfferDraft) =>
+    !d.on ||
+    (Number(d.price) >= 0 && d.price !== '' && Number(d.duration) >= 5);
   const allValid = Object.values(drafts).every(draftValid);
 
   async function handleSaveOffers() {
@@ -75,12 +91,18 @@ export default function ServicosPage() {
     try {
       for (const member of team) {
         const draft = drafts[member.id];
-        const existing = offers.find((o) => o.serviceId === editing.id && o.professionalId === member.id);
+        const existing = offers.find(
+          (o) => o.serviceId === editing.id && o.professionalId === member.id,
+        );
         if (!draft) continue;
         if (draft.on) {
           const price = Number(draft.price);
           const duration = Number(draft.duration);
-          if (!existing || existing.price !== price || existing.durationMinutes !== duration) {
+          if (
+            !existing ||
+            existing.price !== price ||
+            existing.durationMinutes !== duration
+          ) {
             await saveOffer(member.id, editing.id, price, duration);
           }
         } else if (existing) {
@@ -97,18 +119,26 @@ export default function ServicosPage() {
   }
 
   const cols: Column<CatalogService>[] = [
-    { key: 'name', header: 'Serviço', render: (s) => <span className={styles.serviceName}>{s.name}</span> },
+    {
+      key: 'name',
+      header: 'Serviço',
+      render: (s) => <span className={styles.serviceName}>{s.name}</span>,
+    },
     {
       key: 'pros',
       header: 'Quem faz · preço · duração',
       render: (s) => {
         const list = offers.filter((o) => o.serviceId === s.id);
-        if (list.length === 0) return <span className={styles.none}>Ninguém ainda</span>;
+        if (list.length === 0)
+          return <span className={styles.none}>Ninguém ainda</span>;
         return (
           <div className={styles.tags}>
             {list.map((o) => (
               <span key={o.id} className={styles.tag}>
-                {team.find((m) => m.id === o.professionalId)?.name.split(' ')[0] ?? '—'} · {brl(o.price)} · {o.durationMinutes} min
+                {team
+                  .find((m) => m.id === o.professionalId)
+                  ?.name.split(' ')[0] ?? '—'}{' '}
+                · {brl(o.price)} · {o.durationMinutes} min
               </span>
             ))}
           </div>
@@ -144,37 +174,71 @@ export default function ServicosPage() {
       </div>
 
       {loadError ? <p className={styles.note}>{loadError}</p> : null}
-      {loading ? <p className={styles.note}>Carregando…</p> : <Table columns={cols} rows={catalog} />}
+      {loading ? (
+        <p className={styles.note}>Carregando…</p>
+      ) : (
+        <Table columns={cols} rows={catalog} />
+      )}
 
       <p className={styles.note}>
-        Cada profissional escolhe os serviços que faz e define o próprio preço e duração. A comissão segue a % fixa de quem atendeu.{' '}
-        <Link href="/admin/equipe?tab=comissoes">Ajustar em Equipe › Comissões</Link>
+        Cada profissional escolhe os serviços que faz e define o próprio preço e
+        duração. A comissão segue a % fixa de quem atendeu.{' '}
+        <Link href="/admin/equipe?tab=comissoes">
+          Ajustar em Equipe › Comissões
+        </Link>
       </p>
 
-      <Dialog open={newOpen} onClose={() => setNewOpen(false)} title="Novo serviço">
+      <Dialog
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        title="Novo serviço"
+      >
         <div className={styles.formCol}>
-          <Field label="Nome" hint="Preço e duração são definidos por profissional, depois de criar.">
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Corte masculino" />
+          <Field
+            label="Nome"
+            hint="Preço e duração são definidos por profissional, depois de criar."
+          >
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex.: Corte masculino"
+            />
           </Field>
         </div>
         <div className={styles.dialogActions}>
           <Button onClick={() => setNewOpen(false)}>Cancelar</Button>
-          <Button variant="primary" disabled={busy || name.trim().length < 2} onClick={handleCreate}>
+          <Button
+            variant="primary"
+            disabled={busy || name.trim().length < 2}
+            onClick={handleCreate}
+          >
             Criar serviço
           </Button>
         </div>
       </Dialog>
 
-      <Dialog open={editing !== null} onClose={() => setEditing(null)} title={editing ? `Quem faz ${editing.name}` : ''}>
+      <Dialog
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing ? `Quem faz ${editing.name}` : ''}
+      >
         <div className={styles.formCol}>
           {team.map((member) => {
             const draft = drafts[member.id];
             if (!draft) return null;
-            const set = (patch: Partial<OfferDraft>) => setDrafts((prev) => ({ ...prev, [member.id]: { ...draft, ...patch } }));
+            const set = (patch: Partial<OfferDraft>) =>
+              setDrafts((prev) => ({
+                ...prev,
+                [member.id]: { ...draft, ...patch },
+              }));
             return (
               <div key={member.id} className={styles.offerRow}>
                 <label className={styles.offerName}>
-                  <input type="checkbox" checked={draft.on} onChange={(e) => set({ on: e.target.checked })} />
+                  <input
+                    type="checkbox"
+                    checked={draft.on}
+                    onChange={(e) => set({ on: e.target.checked })}
+                  />
                   {member.name}
                 </label>
                 <Input
@@ -201,11 +265,19 @@ export default function ServicosPage() {
               </div>
             );
           })}
-          {team.length === 0 ? <p className={styles.note}>Cadastre profissionais em Equipe primeiro.</p> : null}
+          {team.length === 0 ? (
+            <p className={styles.note}>
+              Cadastre profissionais em Equipe primeiro.
+            </p>
+          ) : null}
         </div>
         <div className={styles.dialogActions}>
           <Button onClick={() => setEditing(null)}>Cancelar</Button>
-          <Button variant="primary" disabled={busy || !allValid} onClick={handleSaveOffers}>
+          <Button
+            variant="primary"
+            disabled={busy || !allValid}
+            onClick={handleSaveOffers}
+          >
             Salvar
           </Button>
         </div>
