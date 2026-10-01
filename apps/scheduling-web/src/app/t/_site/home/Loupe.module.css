@@ -1,0 +1,93 @@
+.wrap {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.frame {
+  --cut-bg: var(--ink-950);
+  position: relative;
+  aspect-ratio: 639 / 804;
+  overflow: hidden;
+  background: var(--ink-900);
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    var(--cut-bg) 0 var(--cut-lg),
+    transparent calc(var(--cut-lg) + 0.5px)
+  );
+  pointer-events: none;
+}
+
+/* Com a lupa fixada no toque, o arraste move a lente em vez de rolar. */
+.pinned {
+  touch-action: none;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.lens {
+  position: absolute;
+  width: clamp(120px, 38%, 200px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  translate: -50% -50%;
+  background-repeat: no-repeat;
+  box-shadow:
+    0 0 0 3px var(--gold-500),
+    0 0 0 6px rgb(10 9 7 / 0.7),
+    0 18px 40px rgb(0 0 0 / 0.5);
+  opacity: 0;
+  scale: 0.6;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-1) linear,
+    scale var(--dur-2) var(--ease-out);
+}
+
+.lensOn {
+  opacity: 1;
+  scale: 1;
+}
+
+.toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--ink-600);
+  background: none;
+  color: var(--chalk);
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-1) linear,
+    color var(--dur-1) linear;
+}
+
+.toggle:hover,
+.toggle[aria-pressed='true'] {
+  border-color: var(--gold-line);
+  color: var(--gold-300);
+}
+
+.keysHint {
+  color: var(--chalk-faint);
+  font-weight: 400;
+}

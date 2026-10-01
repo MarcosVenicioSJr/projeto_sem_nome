@@ -1,0 +1,95 @@
+.title {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variation-settings: 'opsz' 72;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ghost {
+  display: block;
+  visibility: hidden;
+}
+
+.top,
+.bottom {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transition: transform var(--dur-3) var(--ease-blade)
+    calc(var(--cut-delay) + 260ms);
+}
+
+/* A diagonal (0,62%)→(100%,38%) acompanha a inclinação da lâmina aberta. */
+.top {
+  clip-path: polygon(-10% -60%, 110% -60%, 110% 38%, -10% 62%);
+}
+
+.bottom {
+  clip-path: polygon(-10% 62%, 110% 38%, 110% 160%, -10% 160%);
+}
+
+.title[data-cut='done'] .top {
+  transform: translate(-0.012em, -0.024em);
+}
+
+.title[data-cut='done'] .bottom {
+  transform: translate(0.012em, 0.024em);
+}
+
+/*
+ * O fio da navalha: diagonal da caixa [38%..62%] da altura, pintada com
+ * gradiente e "desenhada" da esquerda para a direita via clip-path.
+ */
+.blade {
+  position: absolute;
+  left: -0.12em;
+  right: -0.12em;
+  top: 38%;
+  height: 24%;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom right,
+    transparent calc(50% - 1.5px),
+    var(--gold-300) calc(50% - 0.5px),
+    var(--gold-300) calc(50% + 0.5px),
+    transparent calc(50% + 1.5px)
+  );
+  clip-path: inset(0 100% 0 0);
+  opacity: 0;
+  transition:
+    clip-path var(--dur-3) var(--ease-blade) var(--cut-delay),
+    opacity var(--dur-1) linear var(--cut-delay);
+}
+
+.title[data-cut='done'] .blade {
+  clip-path: inset(0 0 0 0);
+  opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blade {
+    clip-path: inset(0 0 0 0);
+    opacity: 0.9;
+  }
+  .title .top {
+    transform: translate(-0.012em, -0.024em);
+  }
+  .title .bottom {
+    transform: translate(0.012em, 0.024em);
+  }
+}

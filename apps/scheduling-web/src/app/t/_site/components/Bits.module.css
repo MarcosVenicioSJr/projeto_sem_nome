@@ -1,0 +1,82 @@
+.demo {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  height: var(--banner-h);
+  margin: 0;
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      var(--gold-soft) 0 8px,
+      transparent 8px 16px
+    ),
+    var(--ink-900);
+  border-bottom: 1px solid var(--gold-line);
+  color: var(--gold-300);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.fade {
+  height: clamp(48px, 8vw, 96px);
+  background-image: radial-gradient(
+    circle at center,
+    var(--ink-700) 0 1.6px,
+    transparent 2px
+  );
+  background-size: 9px 9px;
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgb(0 0 0 / 0.55) 40%,
+    transparent 100%
+  );
+}
+
+.fadeFlip {
+  mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    rgb(0 0 0 / 0.55) 40%,
+    transparent 100%
+  );
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-4);
+  color: var(--chalk-muted);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  font-variation-settings: 'wdth' 80;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Formato do pente: retângulo com dentes embaixo. */
+.guard {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 22px;
+  padding: 0 6px 3px;
+  color: var(--on-gold);
+  background:
+    linear-gradient(to right, var(--ink-950) 0 2px, transparent 2px) 0 100% /
+      6px 4px repeat-x,
+    var(--gold-500);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}

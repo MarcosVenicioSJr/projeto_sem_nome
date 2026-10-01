@@ -1,0 +1,29 @@
+.wrap {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--s-4);
+  min-height: 100dvh;
+  padding: var(--gutter);
+  text-align: center;
+}
+
+.razor {
+  width: 90px;
+  height: 108px;
+  opacity: 0.8;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.text {
+  margin: 0;
+  max-width: 26rem;
+  color: var(--chalk-muted);
+}
